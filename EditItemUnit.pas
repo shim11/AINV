@@ -2,8 +2,9 @@ unit EditItemUnit;
 
 interface
 
-uses Vcl.Menus, Vcl.StdCtrls, Vcl.DBCtrls, Vcl.Mask,Forms, Dialogs, DB,Windows,SysUtils,
-Vcl.Controls, Vcl.Buttons, System.Classes, Vcl.ExtCtrls, PMDBNavigator;
+uses Vcl.Menus, Vcl.StdCtrls, Vcl.DBCtrls, Vcl.Mask, Forms, Dialogs, DB,
+  Windows, SysUtils,
+  Vcl.Controls, Vcl.Buttons, System.Classes, Vcl.ExtCtrls, PMDBNavigator;
 
 type
   TfmEditItem = class(TForm)
@@ -13,7 +14,6 @@ type
     edPrice: TDBEdit;
     edQtyInv: TDBEdit;
     edTitle: TDBEdit;
-    PMDBNavigator1: TPMDBNavigator;
     sbClose: TSpeedButton;
     StaticText1: TStaticText;
     StaticText4: TStaticText;
@@ -47,6 +47,7 @@ type
     DBCheckBox1: TDBCheckBox;
     StaticText16: TStaticText;
     dbeQtywh: TDBEdit;
+    PMDBNavigator1: TDBNavigator;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure sbCloseClick(Sender: TObject);
     procedure Saveitem1Click(Sender: TObject);
@@ -107,7 +108,7 @@ end;
 
 procedure TfmEditItem.FormShow(Sender: TObject);
 begin
-  DM.dsItems.DataSet.Active := true;
+  DM.dsItems.DataSet.Active := True;
 end;
 
 procedure TfmEditItem.sbCloseClick(Sender: TObject);
@@ -119,7 +120,7 @@ procedure TfmEditItem.Saveitem1Click(Sender: TObject);
 begin
   if (PMDBNavigator1.DataSource.State = dsEdit) then
     PMDBNavigator1.DataSource.DataSet.Post;
-   Close;
+  Close;
 end;
 
 procedure TfmEditItem.lbVendorNameDblClick(Sender: TObject);
@@ -140,11 +141,11 @@ procedure TfmEditItem.edVendorDblClick(Sender: TObject);
 begin
   if (edVendor.Field.Value > '') then
   begin
-    DM.tbVendors.Active := true;
+    DM.tbVendors.Active := True;
     DM.tbVendors.Filter := 'vendorname=' + QuotedStr(edVendor.Field.AsString);
-    DM.tbVendors.Filtered := true;
+    DM.tbVendors.Filtered := True;
     fmEditVendor.ShowModal;
-    DM.tbVendors.Filtered := False;
+    DM.tbVendors.Filtered := false;
   end
   else
   begin
@@ -155,4 +156,3 @@ begin
 end;
 
 end.
-

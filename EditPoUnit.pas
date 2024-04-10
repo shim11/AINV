@@ -301,14 +301,14 @@ begin
       javaRun := 'java -jar AmazonAinv.jar com.ainv.projects.Starter runModule=CreateInboundShipments ';
       args := 'adr1=' + ReplaceStr(vAddress, ' ', '@') + ' city=' + ReplaceStr(vCity, ' ', '@') + ' country=' +
         ReplaceStr(vCountry, ' ', '@') + ' action=plan' + ' state=' + vState + ' zip=' + vZip + ' labPrep=' +
-        cbLabelPrep.Text + ' logdir=' + ExtractFilePath(ParamStr(0)) + '\\ fileName=' + fileName;
+        cbLabelPrep.Text + ' logdir=' + ExtractFilePath(ParamStr(0)) + '\ fileName=' + fileName;
       if (FileExists(fileName + '.error')) then
         DeleteFile(PWideChar(fileName + '.error'));
       if (FileExists(fileName + '.answer')) then
         DeleteFile(PWideChar(fileName + '.answer'));
 
-      // showMessage(args);
-      ExecAndWait(javaRun + args);
+          // showMessage(args);
+      ExeAndWait(javaRun + args);
 
       if (FileExists(fileName + '.error')) then
       begin
@@ -538,7 +538,7 @@ begin
       if (FileExists(fileName + '.answer')) then
         DeleteFile(PWideChar(fileName + '.answer'));
 
-      ExecAndWait(javaRun + args);
+      ExeAndWait(javaRun + args);
 
       if (FileExists(fileName + '.error')) then
       begin

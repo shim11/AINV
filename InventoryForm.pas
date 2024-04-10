@@ -3,14 +3,20 @@ unit InventoryForm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, System.UiTypes,
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  System.UiTypes,
   Dialogs, ExtCtrls, Grids, DBGrids, Buttons, StdCtrls, ComCtrls, MyFunctions,
   DB, DateUtils, Menus, NativeXml, DBCtrls, XMLIntf, XMLDoc, xmldom,
   IdBaseComponent, IdMessageClient, IdSMTPBase, IdSMTP,
-  IdMessage, frxClass, IdSSLOpenSSL, IOUtils, Types, System.ImageList, Vcl.ImgList, FireDAC.Stan.Intf,
-  FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf, FireDAC.DApt.Intf,
-  FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.Comp.Client, SqlTimSt, Vcl.Mask,
-  JvComponentBase, JvFormPlacement, JvExDBGrids, JvDBGrid, JvAppStorage, JvAppIniStorage;
+  IdMessage, frxClass, IdSSLOpenSSL, IOUtils, Types, System.ImageList,
+  Vcl.ImgList, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
+  FireDAC.Phys.Intf, FireDAC.DApt.Intf,
+  FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.Comp.Client,
+  SqlTimSt, Vcl.Mask,
+  JvComponentBase, JvFormPlacement, JvExDBGrids, JvDBGrid, JvAppStorage,
+  JvAppIniStorage, IdComponent, IdTCPConnection, IdTCPClient,
+  IdExplicitTLSClientServerBase;
 
 type
   TVendorArray = array of string;
@@ -275,8 +281,11 @@ type
     btnCloseMemo: TBitBtn;
     btnProcessAll: TButton;
     btnTestEmail: TButton;
-    procedure dbgMainDrawColumnCell(Sender: TObject; const Rect: TRect; DataCol: Integer; Column: TColumn;
-      State: TGridDrawState);
+    SMTP: TIdSMTP;
+    edReplyTo: TDBEdit;
+    Label71: TLabel;
+    procedure dbgMainDrawColumnCell(Sender: TObject; const Rect: TRect;
+      DataCol: Integer; Column: TColumn; State: TGridDrawState);
     procedure btnCreatePOClick(Sender: TObject);
     procedure btnDayRepClick(Sender: TObject);
     procedure btnLoadInventoryClick(Sender: TObject);
@@ -296,10 +305,12 @@ type
     procedure btnLoadOrdersClick(Sender: TObject);
     procedure btnLoadBNFInventoryClick(Sender: TObject);
     procedure btnUnloadBNFClick(Sender: TObject);
-    procedure dbgMainTitleBtnClick(Sender: TObject; ACol: Integer; Field: TField);
-    procedure edItemSearchKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure dbgMainGetBtnParams(Sender: TObject; Field: TField; AFont: TFont; var Background: TColor;
-      var SortMarker: TSortMarker; IsDown: Boolean);
+    procedure dbgMainTitleBtnClick(Sender: TObject; ACol: Integer;
+      Field: TField);
+    procedure edItemSearchKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure dbgMainGetBtnParams(Sender: TObject; Field: TField; AFont: TFont;
+      var Background: TColor; var SortMarker: TSortMarker; IsDown: Boolean);
     // procedure edVendorSearchKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure btnSelectFoundClick(Sender: TObject);
     procedure cbVendorsSelect(Sender: TObject);
@@ -323,7 +334,8 @@ type
     procedure btnMeleInvClick(Sender: TObject);
     procedure btnBWKDInvClick(Sender: TObject);
     procedure SendRequestByTimer(Sender: TObject);
-    procedure SMTPFailedRecipient(Sender: TObject; const AAddress, ACode, AText: string; var VContinue: Boolean);
+    procedure SMTPFailedRecipient(Sender: TObject;
+      const AAddress, ACode, AText: string; var VContinue: Boolean);
     procedure btnSendRequestClick(Sender: TObject);
     procedure btnTwoCompareProfitClick(Sender: TObject);
     procedure edDateFrom3Exit(Sender: TObject);
@@ -357,6 +369,7 @@ type
     procedure btnCloseMemoClick(Sender: TObject);
     procedure btnProcessAllClick(Sender: TObject);
     procedure btnTestEmailClick(Sender: TObject);
+    procedure BitBtn1Click(Sender: TObject);
   private
     // ascDesc: string;
   public
@@ -420,8 +433,8 @@ uses DBUnit, EditItemUnit, EditVendorUnit, VendorsUnit, EditPoUnit,
   AdressSearchUnit;
 {$R *.dfm}
 
-procedure TfmInventory.dbgMainDrawColumnCell(Sender: TObject; const Rect: TRect; DataCol: Integer; Column: TColumn;
-  State: TGridDrawState);
+procedure TfmInventory.dbgMainDrawColumnCell(Sender: TObject; const Rect: TRect;
+  DataCol: Integer; Column: TColumn; State: TGridDrawState);
 var
   isActive, addedToPo, isvendoractive: Boolean;
   bitmap: TBitmap;
@@ -457,7 +470,8 @@ begin
     addedToPo := Column.Field.DataSet.FieldByName('addtopo').AsBoolean;
     if (not(gdSelected in State)) then
     begin
-      if (Uppercase(Column.FieldName) <> 'SKU') and (Uppercase(Column.FieldName) <> 'ADDTOPO') then
+      if (Uppercase(Column.FieldName) <> 'SKU') and
+        (Uppercase(Column.FieldName) <> 'ADDTOPO') then
         if (addedToPo) then
         begin
           Brush.Color := clAqua;
@@ -468,7 +482,8 @@ begin
   begin
     // brush.Color := clRed;
     isActive := Column.Field.DataSet.FieldByName('isActive').AsBoolean;
-    isvendoractive := Column.Field.DataSet.FieldByName('isvendoractive').AsBoolean;
+    isvendoractive := Column.Field.DataSet.FieldByName('isvendoractive')
+      .AsBoolean;
     // if (not (gdFocused in State)) then
     if (isActive and isvendoractive) then
     begin
@@ -698,8 +713,8 @@ begin
             if (qtyS <> '0') then
             begin
               Label3.Caption := 'Update qty=' + qtyS + ' sku=' + Sku;
-              DM.RunSql('update ai_items set qtyinv=' + qtyS + ', fnsku=' + QuotedStr(fnSku) + ' where sku=' +
-                QuotedStr(Sku));
+              DM.RunSql('update ai_items set qtyinv=' + qtyS + ', fnsku=' +
+                QuotedStr(fnSku) + ' where sku=' + QuotedStr(Sku));
               inc(updQty);
             end;
           end
@@ -721,8 +736,10 @@ begin
   finally
     Screen.Cursor := crDefault;
   end;
-  Label3.Caption := FormatDateTime('dd/mm/yyyy tt', Now) + ' Updated ' + IntToStr(updQty) + ' parts';
-  Label4.Caption := FormatDateTime('dd/mm/yyyy tt', Now) + ' Inserted ' + IntToStr(insQty) + ' parts';
+  Label3.Caption := FormatDateTime('dd/mm/yyyy tt', Now) + ' Updated ' +
+    IntToStr(updQty) + ' parts';
+  Label4.Caption := FormatDateTime('dd/mm/yyyy tt', Now) + ' Inserted ' +
+    IntToStr(insQty) + ' parts';
 end;
 
 procedure TfmInventory.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -732,7 +749,8 @@ end;
 
 procedure TfmInventory.FormCreate(Sender: TObject);
 begin
-  IniFileStorage1.FileName := ExtractFilePath(ParamStr(0)) + GetCurrentUserName + '\AINV.ini';
+  IniFileStorage1.FileName := ExtractFilePath(ParamStr(0)) + GetCurrentUserName
+    + '\AINV.ini';
   FormStorage1.AppStorage := IniFileStorage1;
   FormStorage1.RestoreFormPlacement;
 end;
@@ -748,13 +766,17 @@ begin
   Label5.Caption := '';
   Label6.Caption := '';
   cbShow.ItemIndex := 0;
-  cbVendors.Items := DM.fillCombo('vendors', 'vendorname', ' where isactive=true', true, true);
+  cbVendors.Items := DM.fillCombo('vendors', 'vendorname',
+    ' where isactive=true', true, true);
   cbVendors.ItemIndex := 0;
-  cbSetVendor.Items := DM.fillCombo('vendors', 'vendorname', ' where isactive=true', true);
+  cbSetVendor.Items := DM.fillCombo('vendors', 'vendorname',
+    ' where isactive=true', true);
   cbSetVendor.ItemIndex := 0;
-  cbPoReportVendors.Items := DM.fillCombo('vendors', 'vendorname', ' where isactive=true', true);
+  cbPoReportVendors.Items := DM.fillCombo('vendors', 'vendorname',
+    ' where isactive=true', true);
   cbPoReportVendors.ItemIndex := 0;
-  cbSIRepVendors.Items := DM.fillCombo('vendors', 'vendorname', ' where isactive=true', true);
+  cbSIRepVendors.Items := DM.fillCombo('vendors', 'vendorname',
+    ' where isactive=true', true);
   cbSIRepVendors.ItemIndex := 0;
   btnRefreshClick(Sender);
   edDateTo.date := IncDay(Now, 1);
@@ -772,15 +794,18 @@ begin
   edYear.Text := IntToStr(YearOf(IncMonth(Now, -1)));
   edMonth.Text := IntToStr(MonthOf(IncMonth(Now, -1)));
   date := IncMonth(Now, -1);
-  edDateFrom3.date := EncodeDate(ExtractFromDateTime(date, 'year'), ExtractFromDateTime(date, 'month'), 1);
-  edDateTo3.date := EncodeDate(ExtractFromDateTime(date, 'year'), ExtractFromDateTime(date, 'month'),
-    DaysInAMonth(ExtractFromDateTime(date, 'year'), ExtractFromDateTime(date, 'month')));
+  edDateFrom3.date := EncodeDate(ExtractFromDateTime(date, 'year'),
+    ExtractFromDateTime(date, 'month'), 1);
+  edDateTo3.date := EncodeDate(ExtractFromDateTime(date, 'year'),
+    ExtractFromDateTime(date, 'month'), DaysInAMonth(ExtractFromDateTime(date,
+    'year'), ExtractFromDateTime(date, 'month')));
   lbLastUpdateBnf.Caption := DateTimeToStr(DM.getLastUpdateInvQty('BNF'));
   lbLastUpdateTmc.Caption := DateTimeToStr(DM.getLastUpdateInvQty('TM'));
   lbLastUpdateShultz.Caption := DateTimeToStr(DM.getLastUpdateInvQty('SC'));
   lbLastUpdateMele.Caption := DateTimeToStr(DM.getLastUpdateInvQty('MELE'));
   lbLastUpdateBWKD.Caption := DateTimeToStr(DM.getLastUpdateInvQty('BWKD'));
-  lbLastSendDate.Caption := DM.getSqlResult('select max(sentdate) from forders');
+  lbLastSendDate.Caption :=
+    DM.getSqlResult('select max(sentdate) from forders');
   lbOrderNo.Caption := DM.getSqlResult
     ('select orderid from forders where sentdate=(select max(sentdate) from forders) order by shipdate desc limit 1');
   lbSentTo.Caption := DM.getSqlResult
@@ -862,7 +887,8 @@ begin
       processed := 0;
       Screen.Cursor := crSQLWait;
       date := IncDay(Now, -35);
-      DM.RunSql('delete from ai_orders where orderdate < ' + QuotedStr(DateToStr(date)));
+      DM.RunSql('delete from ai_orders where orderdate < ' +
+        QuotedStr(DateToStr(date)));
       for i := 1 to TmpLst.Count - 1 do
       begin
         try
@@ -870,7 +896,8 @@ begin
           TmpStr := TmpLst[i];
           inc(processed);
           Label6.Caption := 'Count=' + IntToStr(processed);
-          OrderId := ExtractDelimited(1, TmpStr, Delim) + ExtractDelimited(14, TmpStr, Delim);
+          OrderId := ExtractDelimited(1, TmpStr, Delim) +
+            ExtractDelimited(14, TmpStr, Delim);
           qtyS := ExtractDelimited(16, TmpStr, Delim);
           price := ExtractDelimited(18, TmpStr, Delim);
           Sku := ExtractDelimited(14, TmpStr, Delim);
@@ -884,31 +911,38 @@ begin
           begin
             // Log('SKU='+sku + ' price= ' + price);
             price := FloatToStr(StrToFloat(price) / StrToInt(qtyS));
-            DM.RunSql('update ai_items set price=' + price + ' where sku=' + QuotedStr(Sku));
-            DM.RunSql('update ai_items set title=' + QuotedStr(Desc) + ' where sku=' + QuotedStr(Sku));
+            DM.RunSql('update ai_items set price=' + price + ' where sku=' +
+              QuotedStr(Sku));
+            DM.RunSql('update ai_items set title=' + QuotedStr(Desc) +
+              ' where sku=' + QuotedStr(Sku));
           end;
           if (Trim(DateS) = '') then
             DateS := ExtractDelimited(9, TmpStr, Delim);
           // DateS := Copy(DateS, 6, 2) + '/' + Copy(DateS, 9, 2) + '/' + Copy(DateS, 1, 4) + ' ' + Copy(DateS, 12, 2) + ':' + Copy(DateS, 15, 2);
           if (qtyS = '') then
             qtyS := '0';
-          Label5.Caption := 'Process Order=' + OrderId + ' ' + DateS + ' ' + ExtractDelimited(12, TmpStr, Delim) + ' ' +
+          Label5.Caption := 'Process Order=' + OrderId + ' ' + DateS + ' ' +
+            ExtractDelimited(12, TmpStr, Delim) + ' ' +
             ExtractDelimited(15, TmpStr, Delim);
           if (DM.OrderExists(OrderId, 'ai_orders')) then
             continue;
-          Label5.Caption := 'Insert Order=' + OrderId + ' ' + DateS + ' ' + Sku + ' ' + qtyS;
+          Label5.Caption := 'Insert Order=' + OrderId + ' ' + DateS + ' ' + Sku
+            + ' ' + qtyS;
           // DM.InsertOrders(OrderId, DateS, sku, QtyS);
-          DM.RunSql('insert into ai_orders (OrderId,OrderDate,Sku,Qty,itemprice)' + 'values(' + QuotedStr(OrderId) + ','
-            + QuotedStr(DateS) + ',' + QuotedStr(Sku) + ',' + qtyS + ',' + price + ')');
+          DM.RunSql(
+            'insert into ai_orders (OrderId,OrderDate,Sku,Qty,itemprice)' +
+            'values(' + QuotedStr(OrderId) + ',' + QuotedStr(DateS) + ',' +
+            QuotedStr(Sku) + ',' + qtyS + ',' + price + ')');
           inc(insQty);
         except
           on e: SysUtils.Exception do
             Label5.Caption := 'Error = ' + e.Message;
         end;
       end;
-      Label6.Caption := FormatDateTime('dd/mm/yyyy tt', Now) + ' Inserted ' + IntToStr(insQty) +
-        ' orders. All procesed=' + IntToStr(processed);
-      Label5.Caption := FormatDateTime('dd/mm/yyyy tt', Now) + ' Updates for inventory min quantity ...';
+      Label6.Caption := FormatDateTime('dd/mm/yyyy tt', Now) + ' Inserted ' +
+        IntToStr(insQty) + ' orders. All procesed=' + IntToStr(processed);
+      Label5.Caption := FormatDateTime('dd/mm/yyyy tt', Now) +
+        ' Updates for inventory min quantity ...';
       Application.ProcessMessages;
       DM.UpdateMinQty;
       Label5.Caption := 'Done.';
@@ -956,22 +990,26 @@ begin
       if (Trim(DateS) = '') then
         DateS := ExtractDelimited(9, TmpStr, Delim);
       // DateS := Copy(DateS, 6, 2) + '/' + Copy(DateS, 9, 2) + '/' + Copy(DateS, 1, 4) + ' ' + Copy(DateS, 12, 2) + ':' + Copy(DateS, 15, 2);
-      Label5.Caption := 'Process Order=' + OrderId + ' ' + DateS + ' ' + ExtractDelimited(14, TmpStr, Delim) + ' ' +
-        ExtractDelimited(16, TmpStr, Delim);
+      Label5.Caption := 'Process Order=' + OrderId + ' ' + DateS + ' ' +
+        ExtractDelimited(14, TmpStr, Delim) + ' ' + ExtractDelimited(16,
+        TmpStr, Delim);
       if (not DM.OrderExists(OrderId, 'forders')) then
       begin
         SqlStr := 'insert into forders (OrderId, Name, Email, Shipping, ShipDate, Sku, Title, Sent)';
-        SqlStr := SqlStr + ' values(' + QuotedStr(OrderId) + ',' + QuotedStr(Name) + ',' + QuotedStr(email) + ',';
-        SqlStr := SqlStr + QuotedStr(ship) + ',' + QuotedStr(DateS) + ',' + QuotedStr(Sku) + ',' + QuotedStr(title) +
-          ', false)';
+        SqlStr := SqlStr + ' values(' + QuotedStr(OrderId) + ',' +
+          QuotedStr(Name) + ',' + QuotedStr(email) + ',';
+        SqlStr := SqlStr + QuotedStr(ship) + ',' + QuotedStr(DateS) + ',' +
+          QuotedStr(Sku) + ',' + QuotedStr(title) + ', false)';
         DM.RunSql(SqlStr);
         inc(insQty);
-        Label6.Caption := 'Inserted ' + OrderId + ' ' + ExtractDelimited(14, TmpStr, Delim) + ' ' +
+        Label6.Caption := 'Inserted ' + OrderId + ' ' +
+          ExtractDelimited(14, TmpStr, Delim) + ' ' +
           ExtractDelimited(16, TmpStr, Delim);
       end;
     end;
-    Label6.Caption := FormatDateTime('dd/mm/yyyy tt', Now) + ' Inserted ' + IntToStr(insQty) +
-      ' feedback orders. All procesed=' + IntToStr(processed);
+    Label6.Caption := FormatDateTime('dd/mm/yyyy tt', Now) + ' Inserted ' +
+      IntToStr(insQty) + ' feedback orders. All procesed=' +
+      IntToStr(processed);
     Application.ProcessMessages;
     Label5.Caption := 'Done.';
   finally
@@ -979,7 +1017,8 @@ begin
   end;
 end;
 
-procedure TfmInventory.memRangeKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TfmInventory.memRangeKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
 begin
   if ( { (Key = VK_RETURN) or } (Key = VK_ESCAPE)) then
     pnRange.Visible := false;
@@ -991,7 +1030,8 @@ begin
   CheckFileDir(LOAD_PROFIT, '*SETTLEMENT*.XML');
 end;
 
-function TfmInventory.CheckFileDir(Action: Integer; fileNamePart: string): Boolean;
+function TfmInventory.CheckFileDir(Action: Integer;
+  fileNamePart: string): Boolean;
 var
   Path, Archive: string;
   SR: TSearchRec;
@@ -1059,8 +1099,8 @@ end;
 procedure TfmInventory.LoadProfitReport(FileName: string);
 var
   OrderId, Sku, oldSku, qtyS, DateS, typeName: string;
-  netto, aInvCost, profit, principalD, ShippingD, FBAPerUnitFulfillmentFeeD, FBAWeightBasedFeeD,
-    FBAPerOrderFulfillmentFeeD, CommissionD: Double;
+  netto, aInvCost, profit, principalD, ShippingD, FBAPerUnitFulfillmentFeeD,
+    FBAWeightBasedFeeD, FBAPerOrderFulfillmentFeeD, CommissionD: Double;
   insQty, updQty, processed, qty: Integer;
   XML: TNativeXml;
 
@@ -1076,32 +1116,43 @@ var
       // Memo1.Lines.Add(OrderId + ' | ' + oldSku + ' | ' + IntToStr(Qty) + ' | ' + FloatToStr(principalD));
       // Memo1.Lines.Add('--- --- --- --- --- --- -- --- --- ');
       aInvCost := DM.getMyCost(oldSku);
-      netto := (principalD + FBAPerUnitFulfillmentFeeD + FBAWeightBasedFeeD + FBAPerOrderFulfillmentFeeD + CommissionD);
+      netto := (principalD + FBAPerUnitFulfillmentFeeD + FBAWeightBasedFeeD +
+        FBAPerOrderFulfillmentFeeD + CommissionD);
       profit := netto - aInvCost * qty;
       if (not DM.ProfitOrderExists(OrderId, oldSku, 'profitreport')) then
       begin
-        DM.RunSql('insert into profitreport values(' + QuotedStr(OrderId) + ',' + QuotedStr(oldSku) + ',' +
-          QuotedStr('') + ',' + QuotedStr(DateS) + ',' + qtyS + ',' + FloatToStrF(principalD, ffFixed, 6, 2) + ',' +
-          FloatToStrF(ShippingD, ffFixed, 6, 2) + ',' + FloatToStrF(FBAPerUnitFulfillmentFeeD, ffFixed, 6, 2) + ',' +
-          FloatToStrF(FBAWeightBasedFeeD, ffFixed, 6, 2) + ',' + FloatToStrF(FBAPerOrderFulfillmentFeeD, ffFixed, 6, 2)
-          + ',' + FloatToStrF(CommissionD, ffFixed, 6, 2) + ',' + FloatToStrF(netto, ffFixed, 6, 2) + ',' +
-          FloatToStrF(aInvCost, ffFixed, 6, 2) + ',' + FloatToStrF(profit, ffFixed, 6, 2) + ')');
+        DM.RunSql('insert into profitreport values(' + QuotedStr(OrderId) + ','
+          + QuotedStr(oldSku) + ',' + QuotedStr('') + ',' + QuotedStr(DateS) +
+          ',' + qtyS + ',' + FloatToStrF(principalD, ffFixed, 6, 2) + ',' +
+          FloatToStrF(ShippingD, ffFixed, 6, 2) + ',' +
+          FloatToStrF(FBAPerUnitFulfillmentFeeD, ffFixed, 6, 2) + ',' +
+          FloatToStrF(FBAWeightBasedFeeD, ffFixed, 6, 2) + ',' +
+          FloatToStrF(FBAPerOrderFulfillmentFeeD, ffFixed, 6, 2) + ',' +
+          FloatToStrF(CommissionD, ffFixed, 6, 2) + ',' + FloatToStrF(netto,
+          ffFixed, 6, 2) + ',' + FloatToStrF(aInvCost, ffFixed, 6, 2) + ',' +
+          FloatToStrF(profit, ffFixed, 6, 2) + ')');
         Application.ProcessMessages;
-        Label5.Caption := 'Inserted Order=' + OrderId + ' ' + DateS + ' ' + Sku + ' ' + qtyS;
+        Label5.Caption := 'Inserted Order=' + OrderId + ' ' + DateS + ' ' + Sku
+          + ' ' + qtyS;
         inc(insQty);
       end
       else
       begin
-        DM.RunSql('update profitreport set principal=' + FloatToStrF(principalD, ffFixed, 6, 2) + ', qty=' + qtyS +
-          ', shipping=' + FloatToStrF(ShippingD, ffFixed, 6, 2) + ', FBAPerUnitFulfillmentFee=' +
-          FloatToStrF(FBAPerUnitFulfillmentFeeD, ffFixed, 6, 2) + ', FBAWeightBasedFee=' +
-          FloatToStrF(FBAWeightBasedFeeD, ffFixed, 6, 2) + ', FBAPerOrderFulfillmentFee=' +
-          FloatToStrF(FBAPerOrderFulfillmentFeeD, ffFixed, 6, 2) + ',Commission=' + FloatToStrF(CommissionD, ffFixed, 6,
-          2) + ', netto=' + FloatToStrF(netto, ffFixed, 6, 2) + ', ainvcost=' + FloatToStrF(aInvCost, ffFixed, 6, 2) +
-          ', profit=' + FloatToStrF(profit, ffFixed, 6, 2) + ' where orderid=' + QuotedStr(OrderId) + ' and sku=' +
-          QuotedStr(oldSku));
+        DM.RunSql('update profitreport set principal=' + FloatToStrF(principalD,
+          ffFixed, 6, 2) + ', qty=' + qtyS + ', shipping=' +
+          FloatToStrF(ShippingD, ffFixed, 6, 2) + ', FBAPerUnitFulfillmentFee='
+          + FloatToStrF(FBAPerUnitFulfillmentFeeD, ffFixed, 6, 2) +
+          ', FBAWeightBasedFee=' + FloatToStrF(FBAWeightBasedFeeD, ffFixed, 6,
+          2) + ', FBAPerOrderFulfillmentFee=' +
+          FloatToStrF(FBAPerOrderFulfillmentFeeD, ffFixed, 6, 2) +
+          ',Commission=' + FloatToStrF(CommissionD, ffFixed, 6, 2) + ', netto='
+          + FloatToStrF(netto, ffFixed, 6, 2) + ', ainvcost=' +
+          FloatToStrF(aInvCost, ffFixed, 6, 2) + ', profit=' +
+          FloatToStrF(profit, ffFixed, 6, 2) + ' where orderid=' +
+          QuotedStr(OrderId) + ' and sku=' + QuotedStr(oldSku));
         Application.ProcessMessages;
-        Label6.Caption := 'Updated Order=' + OrderId + ' ' + DateS + ' ' + Sku + ' ' + qtyS;
+        Label6.Caption := 'Updated Order=' + OrderId + ' ' + DateS + ' ' + Sku +
+          ' ' + qtyS;
         inc(updQty);
       end;
     end;
@@ -1150,9 +1201,11 @@ var
       if (typeName = 'FBAWeightBasedFee') then
         FBAWeightBasedFeeD := FBAWeightBasedFeeD + XMLItem.ValueAsFloat;
       if (typeName = 'FBAPerUnitFulfillmentFee') then
-        FBAPerUnitFulfillmentFeeD := FBAPerUnitFulfillmentFeeD + XMLItem.ValueAsFloat;
+        FBAPerUnitFulfillmentFeeD := FBAPerUnitFulfillmentFeeD +
+          XMLItem.ValueAsFloat;
       if (typeName = 'FBAPerOrderFulfillmentFee') then
-        FBAPerOrderFulfillmentFeeD := FBAPerOrderFulfillmentFeeD + XMLItem.ValueAsFloat;
+        FBAPerOrderFulfillmentFeeD := FBAPerOrderFulfillmentFeeD +
+          XMLItem.ValueAsFloat;
       if (typeName = 'Commission') then
         CommissionD := CommissionD + XMLItem.ValueAsFloat;
       if (typeName = 'Shipping') then
@@ -1188,7 +1241,8 @@ begin
       Application.ProcessMessages;
       Application.ProcessMessages;
       Label5.Caption := 'Updated ' + IntToStr(updQty) + ' orders. Done.';
-      Label6.Caption := 'Inserted ' + IntToStr(insQty) + ' orders. All procesed=' + IntToStr(processed);
+      Label6.Caption := 'Inserted ' + IntToStr(insQty) +
+        ' orders. All procesed=' + IntToStr(processed);
       // DM.insertUpdateItemsProfit;
       // RunExternalSql
       // ('update profitreport pr set vendor=(select vendor from ai_items i where i.sku=pr.sku and vendor>'''') where vendor=''''',
@@ -1218,7 +1272,8 @@ begin
   with OD do
     if Execute then
     begin
-      DM.RunSql('update ai_items set vendorqty=0 where vendor=' + QuotedStr('MELE'));
+      DM.RunSql('update ai_items set vendorqty=0 where vendor=' +
+        QuotedStr('MELE'));
       UpdateMeleInventory(FileName);
     end;
   DM.RefreshQuery(DM.qAinv);
@@ -1252,8 +1307,9 @@ begin
         qtyS := '100'
       else
         qtyS := '0';
-      DM.RunSql('update ai_items set vendorQty=' + qtyS + ', vendorqtyupdate=' + DateS + ' where ffsku=' +
-        QuotedStr(Sku) + ' and vendor=' + QuotedStr('MELE'));
+      DM.RunSql('update ai_items set vendorQty=' + qtyS + ', vendorqtyupdate=' +
+        DateS + ' where ffsku=' + QuotedStr(Sku) + ' and vendor=' +
+        QuotedStr('MELE'));
       Label4.Caption := 'Update  Inventory qty Sku=' + Sku;
       inc(updQty);
     end;
@@ -1293,7 +1349,8 @@ var
   FieldName, fieldValueStr: string;
   // fieldValue: Integer;
 begin
-  FieldName := Uppercase(TjvDBGrid(Sender).Columns.Items[TjvDBGrid(Sender).col - 1].FieldName);
+  FieldName := Uppercase(TjvDBGrid(Sender).Columns.Items[TjvDBGrid(Sender).col -
+    1].FieldName);
   if ((FieldName = 'VENDOR') or (FieldName = 'VENDORQTY')) then
   begin
     // fieldValueStr := TjvDBGrid(Sender).Columns.Items[TjvDBGrid(Sender).col - 1].Field.AsString;
@@ -1315,7 +1372,8 @@ begin
         SQL.Add('order by orderdate desc');
         Active := true;
       end;
-      fmSkuPurchaseOrders.Caption := 'Purchase orders for SKU # ' + fieldValueStr;
+      fmSkuPurchaseOrders.Caption := 'Purchase orders for SKU # ' +
+        fieldValueStr;
       fmSkuPurchaseOrders.ShowModal;
     end;
   end
@@ -1331,15 +1389,19 @@ end;
 
 procedure TfmInventory.Setiteminactive1Click(Sender: TObject);
 begin
-  addActivity(DM.AlonDb, 'TfmInventory.Setiteminactive1Click SKU=' + DM.qAinv.FieldByName('SKU').AsString);
-  DM.RunSql('update ai_items set isactive=false where SKU=' + QuotedStr(DM.qAinv.FieldByName('SKU').AsString));
+  addActivity(DM.AlonDb, 'TfmInventory.Setiteminactive1Click SKU=' +
+    DM.qAinv.FieldByName('SKU').AsString);
+  DM.RunSql('update ai_items set isactive=false where SKU=' +
+    QuotedStr(DM.qAinv.FieldByName('SKU').AsString));
   DM.RefreshQuery(DM.qAinv);
 end;
 
 procedure TfmInventory.Setitemactive1Click(Sender: TObject);
 begin
-  addActivity(DM.AlonDb, 'TfmInventory.Setitemactive1Click SKU=' + DM.qAinv.FieldByName('SKU').AsString);
-  DM.RunSql('update ai_items set isactive=true where SKU=' + QuotedStr(DM.qAinv.FieldByName('SKU').AsString));
+  addActivity(DM.AlonDb, 'TfmInventory.Setitemactive1Click SKU=' +
+    DM.qAinv.FieldByName('SKU').AsString);
+  DM.RunSql('update ai_items set isactive=true where SKU=' +
+    QuotedStr(DM.qAinv.FieldByName('SKU').AsString));
   DM.RefreshQuery(DM.qAinv);
 end;
 
@@ -1377,7 +1439,8 @@ begin
     if (CheckFileDir(LOAD_ORDERS, '*AMAZON_FULFILLED_SHIPMENTS*.*')) then
     begin
       procOrd := true;
-      sendLogMail('AMAZON_FULFILLED_SHIPMENTS loaded', 'AMAZON_FULFILLED_SHIPMENTS loaded ');
+      sendLogMail('AMAZON_FULFILLED_SHIPMENTS loaded',
+        'AMAZON_FULFILLED_SHIPMENTS loaded ');
     end;
     if (CheckFileDir(LOAD_PROFIT, '*SETTLEMENT*.*')) then
     begin
@@ -1393,7 +1456,8 @@ begin
     LoadFiles.Enabled := false;
     TimerForUpdates.Enabled := true;
     if ((procInv = false) or (procOrd = false)) then
-      sendLogMail('Error load inventory', 'Timer started ' + IntToStr(LoadFiles.Tag) + ' times');
+      sendLogMail('Error load inventory', 'Timer started ' +
+        IntToStr(LoadFiles.Tag) + ' times');
     LoadFiles.Tag := 0;
   end
   else
@@ -1405,7 +1469,8 @@ var
   HourNow, MinNow, Sec, MSec: Word;
   // admin, user               : String;
 begin
-  if ((Uppercase(GetCurrentUserName) <> 'SHIM') and (Uppercase(GetCurrentUserName) <> 'ADMINISTRATOR')) then
+  if ((Uppercase(GetCurrentUserName) <> 'SHIM') and
+    (Uppercase(GetCurrentUserName) <> 'ADMINISTRATOR')) then
   begin
     Log('exits without any action');
     Exit;
@@ -1413,7 +1478,8 @@ begin
   DecodeTime(Now, HourNow, MinNow, Sec, MSec);
   if (HourNow > 5) then
   begin
-    Log('Timer hour=' + IntToStr(HourNow) + ' user=' + GetCurrentUserName + '  Timer finished for today');
+    Log('Timer hour=' + IntToStr(HourNow) + ' user=' + GetCurrentUserName +
+      '  Timer finished for today');
     Exit;
   end;
   Log('Timer hour=' + IntToStr(HourNow) + ' user=' + GetCurrentUserName);
@@ -1470,7 +1536,10 @@ end;
 
 procedure TfmInventory.runJavaModule(Action: string; reportName: string = '');
 begin
-  ExecAndWait
+//ExecAndWait
+//    ('java -jar AmazonAinv.jar com.ainv.projects.Starter runModule=GetReportsForAinv dir=c:\Amazon\production\reports\\ logdir='
+//    + ExtractFilePath(ParamStr(0)) + '\\ action=' + Action + ' addfile=' + reportName);
+ExeAndWait
     ('java -jar AmazonAinv.jar com.ainv.projects.Starter runModule=GetReportsForAinv dir=c:\Amazon\production\reports\\ logdir='
     + ExtractFilePath(ParamStr(0)) + '\\ action=' + Action + ' addfile=' + reportName);
 end;
@@ -1544,15 +1613,18 @@ begin
     begin
       Application.ProcessMessages;
       TmpStr := TmpLst[i];
-      if (ExtractDelimited(10, TmpStr, [Delim]) = 'INACCURATE_ASIN_QUANTITY_IN_CARTON') then
+      if (ExtractDelimited(10, TmpStr, [Delim])
+        = 'INACCURATE_ASIN_QUANTITY_IN_CARTON') then
       begin
         createDate := Trim(ExtractDelimited(2, TmpStr, [Delim]));
         shipId := Trim(ExtractDelimited(3, TmpStr, [Delim]));
-        if (retStrFieldValue(DM.AlonDb, 'select shipid from reconreport where shipid=' + QuotedStr(shipId)) <> shipId)
-        then
+        if (retStrFieldValue(DM.AlonDb,
+          'select shipid from reconreport where shipid=' + QuotedStr(shipId)) <>
+          shipId) then
         begin
           Label4.Caption := 'Insert into reconcile report ShipId = ' + shipId;
-          DM.RunSql('insert into reconreport values(' + QuotedStr(shipId) + ',' + QuotedStr(createDate) + ',0,' +
+          DM.RunSql('insert into reconreport values(' + QuotedStr(shipId) + ','
+            + QuotedStr(createDate) + ',0,' +
             QuotedStr(DateTimeToStr(Now)) + ')');
         end;
       end;
@@ -1560,7 +1632,8 @@ begin
   finally
     Screen.Cursor := crDefault;
   end;
-  Label4.Caption := FormatDateTime('dd/mm/yyyy tt', Now) + ' Finished load recon file ';
+  Label4.Caption := FormatDateTime('dd/mm/yyyy tt', Now) +
+    ' Finished load recon file ';
 end;
 
 procedure TfmInventory.btnRefreshClick(Sender: TObject);
@@ -1597,7 +1670,8 @@ begin
     po := DM.FindPoBySKU(DM.qAinv.FieldByName('SKU').AsString);
     if (po = 0) then
     begin
-      DM.RunSql('update ai_items set lastorderdate=null where sku=' + QuotedStr(DM.qAinv.FieldByName('sku').AsString));
+      DM.RunSql('update ai_items set lastorderdate=null where sku=' +
+        QuotedStr(DM.qAinv.FieldByName('sku').AsString));
     end
     else
     begin
@@ -1609,20 +1683,23 @@ begin
     (DM.isUpdateVendors(DM.qAinv.FieldByName('Vendor').AsString))) then
   // ((UpperCase(Trim(DM.qAInv.FieldByName('Vendor').AsString)) = 'BNF') or (UpperCase(Trim(DM.qAInv.FieldByName('Vendor').AsString)) = 'TMC'))) then
   begin
-    if (MessageDlg('Vendor''s qty of this item is "0".' + #13 + #10 + 'Do you want anyway include this line to PO?',
-      mtConfirmation, [mbOK, mbCancel], 0) = mrCancel) then
+    if (MessageDlg('Vendor''s qty of this item is "0".' + #13 + #10 +
+      'Do you want anyway include this line to PO?', mtConfirmation,
+      [mbOK, mbCancel], 0) = mrCancel) then
       Exit;
   end;
   with DM do
   begin
     if (qAInvAddToPo.Value = false) then
     begin
-      RunSql('update ai_items set addtopo=true where sku=' + QuotedStr(qAinv.FieldByName('sku').AsString));
+      RunSql('update ai_items set addtopo=true where sku=' +
+        QuotedStr(qAinv.FieldByName('sku').AsString));
       cbVendorsSelect(nil);
     end
     else
     begin
-      RunSql('update ai_items set addtopo=false where sku=' + QuotedStr(qAinv.FieldByName('sku').AsString));
+      RunSql('update ai_items set addtopo=false where sku=' +
+        QuotedStr(qAinv.FieldByName('sku').AsString));
       RefreshQuery(DM.qAinv);
       cbVendorsSelect(nil);
     end;
@@ -1648,7 +1725,8 @@ begin
     begin
       if (onlyActive) then
       begin
-        qAinv.Filter := 'isActive=true and vendor=' + QuotedStr(qAinvVendor.AsString);
+        qAinv.Filter := 'isActive=true and vendor=' +
+          QuotedStr(qAinvVendor.AsString);
       end
       else
       begin
@@ -1696,7 +1774,9 @@ begin
       LoadBNFInventory(FileName);
     end;
   // DM.RunSql('update items set isActive=true');
-  RunExternalSql('update ai_items set qtymin=qtyinv where qtymin=0 and qtyinv> 0', DM.AlonDb.Params.Database);
+  RunExternalSql
+    ('update ai_items set qtymin=qtyinv where qtymin=0 and qtyinv> 0',
+    DM.AlonDb.Params.Database);
   DM.RefreshQuery(DM.qAinv);
 end;
 
@@ -1748,9 +1828,10 @@ begin
       else
       begin
         DM.RunSql(
-          'insert into ai_items (sku,ffsku,title,description,qtyinv,price,mycost,asin, weight, isactive) values (' +
-          QuotedStr(Sku) + ',' + QuotedStr(FfSku) + ',' + QuotedStr(title) + ',' + QuotedStr(Desc) + ',' + qtyS + ',' +
-          price + ',' + myPrice + ',' + QuotedStr(UPC) + ',' + weight + ',true)');
+          'insert into ai_items (sku,ffsku,title,description,qtyinv,price,mycost,asin, weight, isactive) values ('
+          + QuotedStr(Sku) + ',' + QuotedStr(FfSku) + ',' + QuotedStr(title) +
+          ',' + QuotedStr(Desc) + ',' + qtyS + ',' + price + ',' + myPrice + ','
+          + QuotedStr(UPC) + ',' + weight + ',true)');
         Label4.Caption := 'Insert into Inventory Sku=' + Sku;
         inc(insQty);
       end;
@@ -1790,7 +1871,8 @@ begin
         ('<AmazonEnvelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="amzn-envelope.xsd">');
       StrLst.Add
         ('<Header><DocumentVersion>1.01</DocumentVersion><MerchantIdentifier>M_THESPECIAL_5452616</MerchantIdentifier></Header>');
-      StrLst.Add('<MessageType>' + Rg1.Items.Strings[Rg1.ItemIndex] + '</MessageType>');
+      StrLst.Add('<MessageType>' + Rg1.Items.Strings[Rg1.ItemIndex] +
+        '</MessageType>');
       //
       StrLst.Add('<Message>');
       while not Eof do
@@ -1841,7 +1923,8 @@ begin
           StrLst.Add('<MessageID>' + IntToStr(i) + '</MessageID>');
           StrLst.Add('<Price>');
           StrLst.Add('<SKU>' + Sku + '</SKU>');
-          StrLst.Add('<StandardPrice currency="USD">' + price + '</StandardPrice>');
+          StrLst.Add('<StandardPrice currency="USD">' + price +
+            '</StandardPrice>');
           StrLst.Add('</Price>');
         end;
 
@@ -1853,8 +1936,8 @@ begin
           StrLst.Add('<ProductImage>');
           StrLst.Add('<SKU>' + Sku + '</SKU>');
           StrLst.Add('<ImageType>Main</ImageType>');
-          StrLst.Add('<ImageLocation>http://miraduga.com/downloads/bnfpics/' + clearSku + '/' + clearSku +
-            '_800.jpg</ImageLocation>');
+          StrLst.Add('<ImageLocation>http://miraduga.com/downloads/bnfpics/' +
+            clearSku + '/' + clearSku + '_800.jpg</ImageLocation>');
           StrLst.Add('</ProductImage>');
         end;
         Next;
@@ -1862,7 +1945,8 @@ begin
     end;
     StrLst.Add('</Message>');
     StrLst.Add('</AmazonEnvelope>');
-    StrLst.SaveToFile(CurrDir + 'Uploads\' + Rg1.Items.Strings[Rg1.ItemIndex] + '_upload.xml');
+    StrLst.SaveToFile(CurrDir + 'Uploads\' + Rg1.Items.Strings[Rg1.ItemIndex] +
+      '_upload.xml');
     StrLst.Clear;
     Label4.Caption := 'Done';
   finally
@@ -1873,7 +1957,8 @@ end;
 
 procedure TfmInventory.DeleteItem1Click(Sender: TObject);
 begin
-  DM.RunSql('delete from ai_items where SKU=' + QuotedStr(DM.qAinv.FieldByName('SKU').AsString));
+  DM.RunSql('delete from ai_items where SKU=' +
+    QuotedStr(DM.qAinv.FieldByName('SKU').AsString));
   DM.RefreshQuery(DM.qAinv);
 end;
 
@@ -1928,7 +2013,8 @@ begin
   fmShipQtyProblem.Show;
 end;
 
-procedure TfmInventory.dbgMainTitleBtnClick(Sender: TObject; ACol: Integer; Field: TField);
+procedure TfmInventory.dbgMainTitleBtnClick(Sender: TObject; ACol: Integer;
+  Field: TField);
 var
   OrderBy: Integer;
   Asc, setNewOrder: Boolean;
@@ -1992,27 +2078,35 @@ begin
     SetOrder(OrderBy, Asc);
 end;
 
-procedure TfmInventory.dbgMainGetBtnParams(Sender: TObject; Field: TField; AFont: TFont; var Background: TColor;
-  var SortMarker: TSortMarker; IsDown: Boolean);
+procedure TfmInventory.dbgMainGetBtnParams(Sender: TObject; Field: TField;
+  AFont: TFont; var Background: TColor; var SortMarker: TSortMarker;
+  IsDown: Boolean);
 var
   HighLight: Boolean;
 begin
   HighLight := false;
   if (Uppercase(Field.FieldName) = 'SKU') and (CurrentOrder = ORDER_BY_SKU) then
     HighLight := true
-  else if (Uppercase(Field.FieldName) = 'VENDOR') and (CurrentOrder = ORDER_BY_VENDOR) then
+  else if (Uppercase(Field.FieldName) = 'VENDOR') and
+    (CurrentOrder = ORDER_BY_VENDOR) then
     HighLight := true
-  else if (Uppercase(Field.FieldName) = 'QTYINV') and (CurrentOrder = ORDER_BY_INV) then
+  else if (Uppercase(Field.FieldName) = 'QTYINV') and
+    (CurrentOrder = ORDER_BY_INV) then
     HighLight := true
-  else if (Uppercase(Field.FieldName) = 'QTYMIN') and (CurrentOrder = ORDER_BY_QTY_MIN) then
+  else if (Uppercase(Field.FieldName) = 'QTYMIN') and
+    (CurrentOrder = ORDER_BY_QTY_MIN) then
     HighLight := true
-  else if (Uppercase(Field.FieldName) = 'QTYORD') and (CurrentOrder = ORDER_BY_QTY_TO_ORD) then
+  else if (Uppercase(Field.FieldName) = 'QTYORD') and
+    (CurrentOrder = ORDER_BY_QTY_TO_ORD) then
     HighLight := true
-  else if (Uppercase(Field.FieldName) = 'ADDTOPO') and (CurrentOrder = ORDER_BY_ADD_TO_PO) then
+  else if (Uppercase(Field.FieldName) = 'ADDTOPO') and
+    (CurrentOrder = ORDER_BY_ADD_TO_PO) then
     HighLight := true
-  else if (Uppercase(Field.FieldName) = 'QTYWH') and (CurrentOrder = ORDER_BY_QTY_WH) then
+  else if (Uppercase(Field.FieldName) = 'QTYWH') and
+    (CurrentOrder = ORDER_BY_QTY_WH) then
     HighLight := true
-  else if (Uppercase(Field.FieldName) = 'LASTORDERDATE') and (CurrentOrder = ORDER_BY_ORDER_DATE) then
+  else if (Uppercase(Field.FieldName) = 'LASTORDERDATE') and
+    (CurrentOrder = ORDER_BY_ORDER_DATE) then
     HighLight := true
   else
     SortMarker := smNone;
@@ -2029,14 +2123,17 @@ end;
 procedure TfmInventory.edDateFrom3Exit(Sender: TObject);
 begin
   edDateTo3.date := EncodeDate(ExtractFromDateTime(edDateFrom3.date, 'year'),
-    ExtractFromDateTime(edDateFrom3.date, 'month'), DaysInAMonth(ExtractFromDateTime(edDateFrom3.date, 'year'),
+    ExtractFromDateTime(edDateFrom3.date, 'month'),
+    DaysInAMonth(ExtractFromDateTime(edDateFrom3.date, 'year'),
     ExtractFromDateTime(edDateFrom3.date, 'month')));
 end;
 
 procedure TfmInventory.Emptyorderdate1Click(Sender: TObject);
 begin
-  addActivity(DM.AlonDb, 'TfmInventory.EmptyOrderDate SKU=' + QuotedStr(DM.qAinv.FieldByName('SKU').AsString));
-  DM.RunSql('update ai_items set lastorderdate=null where SKU=' + QuotedStr(DM.qAinv.FieldByName('SKU').AsString));
+  addActivity(DM.AlonDb, 'TfmInventory.EmptyOrderDate SKU=' +
+    QuotedStr(DM.qAinv.FieldByName('SKU').AsString));
+  DM.RunSql('update ai_items set lastorderdate=null where SKU=' +
+    QuotedStr(DM.qAinv.FieldByName('SKU').AsString));
   DM.RefreshQuery(DM.qAinv);
 end;
 
@@ -2058,7 +2155,8 @@ begin
   end
   else
   begin
-    addActivity(DM.AlonDb, '----------- Change version / restart ---------------');
+    addActivity(DM.AlonDb,
+      '----------- Change version / restart ---------------');
     Close;
   end;
 end;
@@ -2126,7 +2224,8 @@ begin
   setCountSelectedLines();
 end;
 
-procedure TfmInventory.edItemSearchKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TfmInventory.edItemSearchKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
 begin
   if (Key = 13) then
     cbVendorsSelect(Sender);
@@ -2189,16 +2288,19 @@ begin
     DM.qAinv.Filtered := true;
     if (edItemSearch.Text > '') then
     begin
-      SelectFoundItems := 'update ai_items set addtopo=true where upper(sku) like ''%' +
+      SelectFoundItems :=
+        'update ai_items set addtopo=true where upper(sku) like ''%' +
         Uppercase(Trim(edItemSearch.Text)) +
         '%'' and mycost>0 and qtyord>0  and lastorderdate is null and (vendorQty > 0 or vendorQty is null)';
-      SelectVisibleItems := 'update ai_items set addtopo=true where upper(sku) like ''%' +
+      SelectVisibleItems :=
+        'update ai_items set addtopo=true where upper(sku) like ''%' +
         Uppercase(Trim(edItemSearch.Text)) + '%''';
       if DM.qAinv.Filter > '' then
         DM.qAinv.Filter := DM.qAinv.Filter + ' and upper(sku) like ' +
           QuotedStr('%' + Uppercase(Trim(edItemSearch.Text)) + '%')
       else
-        DM.qAinv.Filter := 'upper(sku) like ' + QuotedStr('%' + Uppercase(Trim(edItemSearch.Text)) + '%');
+        DM.qAinv.Filter := 'upper(sku) like ' +
+          QuotedStr('%' + Uppercase(Trim(edItemSearch.Text)) + '%');
     end
     else
     begin
@@ -2230,19 +2332,23 @@ begin
       qAinv.Filtered := true;
       if (edItemSearch.Text > '') then
       begin
-        SelectFoundItems := 'update ai_items set addtopo=true where vendor=' + QuotedStr(vendor) +
-          ' and upper(sku) like ' + QuotedStr('%' + Uppercase(Trim(edItemSearch.Text)) + '%') +
+        SelectFoundItems := 'update ai_items set addtopo=true where vendor=' +
+          QuotedStr(vendor) + ' and upper(sku) like ' +
+          QuotedStr('%' + Uppercase(Trim(edItemSearch.Text)) + '%') +
           ' and mycost>0 and qtyord>0  and lastorderdate is null  and (vendorQty > 0 or vendorQty is null)';
-        SelectVisibleItems := 'update ai_items set addtopo=true where vendor=' + QuotedStr(vendor) +
-          ' and upper(sku) like ' + QuotedStr('%' + Uppercase(Trim(edItemSearch.Text)) + '%');
+        SelectVisibleItems := 'update ai_items set addtopo=true where vendor=' +
+          QuotedStr(vendor) + ' and upper(sku) like ' +
+          QuotedStr('%' + Uppercase(Trim(edItemSearch.Text)) + '%');
         qAinv.Filter := qAinv.Filter + ' and upper(sku) like ' +
           QuotedStr('%' + Uppercase(Trim(edItemSearch.Text)) + '%');
       end
       else
       begin
-        SelectFoundItems := 'update ai_items set addtopo=true where vendor=' + QuotedStr(vendor) +
+        SelectFoundItems := 'update ai_items set addtopo=true where vendor=' +
+          QuotedStr(vendor) +
           ' and mycost>0 and qtyord>0  and lastorderdate is null  and (vendorQty > 0 or vendorQty is null)';
-        SelectVisibleItems := 'update ai_items set addtopo=true where vendor=' + QuotedStr(vendor);
+        SelectVisibleItems := 'update ai_items set addtopo=true where vendor=' +
+          QuotedStr(vendor);
       end;
     end;
   btnRefreshClick(nil);
@@ -2264,8 +2370,9 @@ begin
   begin
     if (edItemSearch.Text > '') then
     begin
-      sqlText := 'select SKU,ASIN, mycost from ai_items where upper(sku) like ''%' + Uppercase(Trim(edItemSearch.Text))
-        + '%'' and mycost>0';
+      sqlText :=
+        'select SKU,ASIN, mycost from ai_items where upper(sku) like ''%' +
+        Uppercase(Trim(edItemSearch.Text)) + '%'' and mycost>0';
     end
     else
     begin
@@ -2274,12 +2381,14 @@ begin
   end
   else if (edItemSearch.Text > '') then
   begin
-    sqlText := 'select SKU,ASIN, mycost from ai_items where vendor=' + QuotedStr(vendor) + ' and upper(sku) like ''%' +
+    sqlText := 'select SKU,ASIN, mycost from ai_items where vendor=' +
+      QuotedStr(vendor) + ' and upper(sku) like ''%' +
       Uppercase(Trim(edItemSearch.Text)) + '%'' and mycost>0';
   end
   else
   begin
-    sqlText := 'select SKU,ASIN, mycost from ai_items where vendor=' + QuotedStr(vendor) + ' and mycost>0';
+    sqlText := 'select SKU,ASIN, mycost from ai_items where vendor=' +
+      QuotedStr(vendor) + ' and mycost>0';
   end;
   if (Trim(vendor) = '') then
     vendor := 'All';
@@ -2299,8 +2408,8 @@ begin
       i := 0;
       // sku	asin	maximum-selling-price	minimum-selling-price	map	quantity	fba
 
-      StrLst.Add('sku' + tab + 'asin' + tab + 'maximum-selling-price' + tab + 'minimum-selling-price' + tab + 'map' +
-        tab + 'quantity' + tab + 'fba');
+      StrLst.Add('sku' + tab + 'asin' + tab + 'maximum-selling-price' + tab +
+        'minimum-selling-price' + tab + 'map' + tab + 'quantity' + tab + 'fba');
       while not Eof do
       // for i := 1 to 10 do
       begin
@@ -2308,9 +2417,12 @@ begin
         Sku := Fields[0].AsString;
         Asin := Fields[1].AsString;
         MyCost := Fields[2].AsFloat;
-        maxPrice := FloatToStrF(MyCost * StrToFloat(edMaxPrice.Text), ffFixed, 6, 2);
-        minPrice := FloatToStrF(MyCost * StrToFloat(edMinPrice.Text) + StrToFloat(edAddShipCost.Text), ffFixed, 6, 2);
-        StrLst.Add(Sku + tab + Asin + tab + maxPrice + tab + minPrice + tab + ' ' + tab + '1' + tab + 'y');
+        maxPrice := FloatToStrF(MyCost * StrToFloat(edMaxPrice.Text),
+          ffFixed, 6, 2);
+        minPrice := FloatToStrF(MyCost * StrToFloat(edMinPrice.Text) +
+          StrToFloat(edAddShipCost.Text), ffFixed, 6, 2);
+        StrLst.Add(Sku + tab + Asin + tab + maxPrice + tab + minPrice + tab +
+          ' ' + tab + '1' + tab + 'y');
         Application.ProcessMessages;
         Next;
       end;
@@ -2331,7 +2443,8 @@ begin
   with OD do
     if Execute then
     begin
-      DM.RunSql('update ai_items set vendorqty=0 where vendor=' + QuotedStr('SC'));
+      DM.RunSql('update ai_items set vendorqty=0 where vendor=' +
+        QuotedStr('SC'));
       UpdateShultzInventory(FileName);
     end;
   DM.RefreshQuery(DM.qAinv);
@@ -2363,8 +2476,9 @@ begin
       qtyS := ExtractDelimited(8, TmpStr, [Delim]);
       if (qtyS = '') then
         qtyS := '0';
-      DM.RunSql('update ai_items set vendorQty=' + qtyS + ', vendorqtyupdate=' + DateS + ' where ffsku=' +
-        QuotedStr(Sku) + ' and vendor=' + QuotedStr('SC'));
+      DM.RunSql('update ai_items set vendorQty=' + qtyS + ', vendorqtyupdate=' +
+        DateS + ' where ffsku=' + QuotedStr(Sku) + ' and vendor=' +
+        QuotedStr('SC'));
       Label4.Caption := 'Update  Inventory qty Sku=' + Sku;
       inc(updQty);
     end;
@@ -2378,11 +2492,11 @@ end;
 
 procedure TfmInventory.btnTestEmailClick(Sender: TObject);
 begin
-     SendLogMail('Test email','Test test');
+  sendLogMail('Test email', 'Test test');
+  ShowMessage('Test mail sent');
 end;
 
 // ---------------TMC------------------------------------------------------------
-
 
 procedure TfmInventory.btnTmcInvClick(Sender: TObject);
 begin
@@ -2407,13 +2521,17 @@ begin
   try
     // respHeader := TALHTTPResponseHeader.Create;
     replayStream := TStringStream.Create('');
-    DM.HTTP1.URL.Create('http://www.trademarkcommerce.com/merchants/files/feeds/tminv_feed.xml');
-    DM.HTTP1.Get('http://www.trademarkcommerce.com/merchants/files/feeds/tminv_feed.xml', replayStream);
+    DM.HTTP1.URL.Create
+      ('http://www.trademarkcommerce.com/merchants/files/feeds/tminv_feed.xml');
+    DM.HTTP1.Get
+      ('http://www.trademarkcommerce.com/merchants/files/feeds/tminv_feed.xml',
+      replayStream);
     StrLst.Add(replayStream.DataString);
     // strLst.SaveToFile('ResponseTMCInv.xml');
     // strLst.LoadFromFile('ResponseTMCInv.xml');
     // strLst.SaveToStream(ReplayStream);
-    Result := (ProcessXMLTMCReplay(replayStream, false, 'TMC-', 'Product', 'ProductCode', 'InventoryLevel'));
+    Result := (ProcessXMLTMCReplay(replayStream, false, 'TMC-', 'Product',
+      'ProductCode', 'InventoryLevel'));
   finally
     Label4.Caption := 'Update TMC Inventory finished';
     DM.HTTP1.Disconnect;
@@ -2422,8 +2540,8 @@ begin
   end;
 end;
 
-function TfmInventory.ProcessXMLTMCReplay(XmlStream: TStringStream; zero: Boolean;
-  prefix, parentNode, itemName, inventoryName: string): Boolean;
+function TfmInventory.ProcessXMLTMCReplay(XmlStream: TStringStream;
+  zero: Boolean; prefix, parentNode, itemName, inventoryName: string): Boolean;
 var
   item, inv, DateS: string;
   nodesCount, i, qty: Integer;
@@ -2472,20 +2590,22 @@ begin
   DateS := QuotedStr(DateTimeToStr(Now));
   try
     DM.XMLDocument1.LoadFromStream(XmlStream);
-    nodesCount := DM.XMLDocument1.DocumentElement.ChildNodes[1].ChildNodes.Count;
+    nodesCount := DM.XMLDocument1.DocumentElement.ChildNodes[1]
+      .ChildNodes.Count;
     if (nodesCount > 0) then
     begin
       for i := 0 to nodesCount - 1 do
       begin
-        getChildNodes(DM.XMLDocument1.DocumentElement.ChildNodes[1].ChildNodes[i]);
+        getChildNodes(DM.XMLDocument1.DocumentElement.ChildNodes[1]
+          .ChildNodes[i]);
         if (Trim(inv) > '') then
           qty := StrToInt(inv)
         else
           qty := 0;
         if (qty < 0) or (zero) then
           qty := 0;
-        DM.RunSql('update ai_items set vendorqty=' + IntToStr(qty) + ', vendorqtyupdate=' + DateS + ' where ffsku=' +
-          QuotedStr(item));
+        DM.RunSql('update ai_items set vendorqty=' + IntToStr(qty) +
+          ', vendorqtyupdate=' + DateS + ' where ffsku=' + QuotedStr(item));
         Label4.Caption := 'Update  Inventory qty Sku=' + item;
         Application.ProcessMessages;
       end;
@@ -2534,20 +2654,25 @@ begin
         if (Action = 'Set vendor') then
         begin
           lbMsg3.Caption := 'Update items';
-          DM.RunSql('update ai_items set vendor=' + QuotedStr(vendor) + ' where sku=' + QuotedStr(Sku));
+          DM.RunSql('update ai_items set vendor=' + QuotedStr(vendor) +
+            ' where sku=' + QuotedStr(Sku));
           // lbMsg3.Caption := 'Update profitreports';
-          updProfitReport := updProfitReport + 'update profitreport set vendor=' + QuotedStr(vendor) +
-            ', ainvcost=(select mycost from ai_items i where i.sku=' + QuotedStr(Sku) + ' and mycost > 0)' +
-            ' where sku=' + QuotedStr(Sku) + ';';
+          updProfitReport := updProfitReport + 'update profitreport set vendor='
+            + QuotedStr(vendor) +
+            ', ainvcost=(select mycost from ai_items i where i.sku=' +
+            QuotedStr(Sku) + ' and mycost > 0)' + ' where sku=' +
+            QuotedStr(Sku) + ';';
           // DM.RunSql('update profitreport p set vendor=' + QuotedStr(vendor) + ' where sku=' + QuotedStr(Sku));
         end
         else if (Action = 'Set active') then
         begin
-          DM.RunSql('update ai_items set isactive=true where SKU=' + QuotedStr(Sku));
+          DM.RunSql('update ai_items set isactive=true where SKU=' +
+            QuotedStr(Sku));
         end
         else if (Action = 'Set inactive') then
         begin
-          DM.RunSql('update ai_items set isactive=false where SKU=' + QuotedStr(Sku));
+          DM.RunSql('update ai_items set isactive=false where SKU=' +
+            QuotedStr(Sku));
         end;
       end;
       DM.RunSql('update ai_items set addtopo=false');
@@ -2560,7 +2685,8 @@ begin
       if (Trim(upsql) <> '') then
       begin
         skuList.Add(upsql);
-        RunExternalSql(updProfitReport, DM.AlonDb.Name, 'c:\Temp\' + DateToFileName(Now, true) + '.bat');
+        RunExternalSql(updProfitReport, DM.AlonDb.Name,
+          'c:\Temp\' + DateToFileName(Now, true) + '.bat');
         skuList.SaveToFile('c:\Temp\' + DateToFileName(Now, true) + '.sql');
       end;
     end
@@ -2577,7 +2703,8 @@ begin
   with OD do
     if Execute then
     begin
-      DM.RunSql('update ai_items set vendorqty=0 where vendor=' + QuotedStr('BWKD'));
+      DM.RunSql('update ai_items set vendorqty=0 where vendor=' +
+        QuotedStr('BWKD'));
       UpdateBWKDInventory(FileName);
     end;
   DM.RefreshQuery(DM.qAinv);
@@ -2613,8 +2740,9 @@ begin
         qtyS := '6'
       else
         qtyS := '0';
-      DM.RunSql('update ai_items set vendorQty=' + qtyS + ', vendorqtyupdate=' + DateS + ' where ffsku=' +
-        QuotedStr(Sku) + ' and vendor=' + QuotedStr('BWKD'));
+      DM.RunSql('update ai_items set vendorQty=' + qtyS + ', vendorqtyupdate=' +
+        DateS + ' where ffsku=' + QuotedStr(Sku) + ' and vendor=' +
+        QuotedStr('BWKD'));
       Label4.Caption := 'Update  Inventory qty Sku=' + Sku;
       fileLst.Add('BWKD-' + Sku + #09 + qtyS);
       inc(updQty);
@@ -2647,7 +2775,7 @@ begin
     if Execute then
     begin
       Path := RestorePostgresDatabase(FileName, DM.AlonDb.Params.Database);
-      ShowMessage('DB ' + DM.AlonDb.Params.Database + ' restored \n' + Path);
+      ShowMessage('DB ' + DM.AlonDb.Params.Database + ' restored ' + Path);
       Log(Path);
     end;
 end;
@@ -2691,14 +2819,16 @@ begin
     // respHeader := TALHTTPResponseHeader.Create;
     replayStream := TStringStream.Create('');
     DM.HTTP1.URL.Create('https://www.bnfusa.com/xml_xchange/inv/post.lasso');
-    DM.HTTP1.Post('https://www.bnfusa.com/xml_xchange/inv/post.lasso', SendStream, replayStream);
+    DM.HTTP1.Post('https://www.bnfusa.com/xml_xchange/inv/post.lasso',
+      SendStream, replayStream);
     // DM.HTTP.URL := 'https://www.bnfusa.com/xml_xchange/inv/post.lasso';
     // DM.HTTP.Post('https://www.bnfusa.com/xml_xchange/inv/post.lasso', SendStream, replayStream, respHeader);
     StrLst.Add(replayStream.DataString);
     // StrLst.SaveToFile('ResponseBnfInv.xml');
     // strLst.LoadFromFile('ResponseBnfInv.xml');
     // strLst.SaveToStream(replayStream);
-    Result := (ProcessXMLBNFReplay(replayStream, false, 'BNF-', 'record', 'item', 'inv'));
+    Result := (ProcessXMLBNFReplay(replayStream, false, 'BNF-', 'record',
+      'item', 'inv'));
   finally
     Label4.Caption := 'Update BNF Inventory finished';
     DM.HTTP1.Disconnect;
@@ -2706,8 +2836,8 @@ begin
   end;
 end;
 
-function TfmInventory.ProcessXMLBNFReplay(XmlStream: TStringStream; zero: Boolean;
-  prefix, parentNode, itemName, inventoryName: string): Boolean;
+function TfmInventory.ProcessXMLBNFReplay(XmlStream: TStringStream;
+  zero: Boolean; prefix, parentNode, itemName, inventoryName: string): Boolean;
 var
   item, inv, DateS: string;
   nodesCount, i, qty: Integer;
@@ -2762,8 +2892,8 @@ begin
           qty := 0;
         if (qty < 0) then
           qty := 0;
-        DM.RunSql('update ai_items set vendorqty=' + IntToStr(qty) + ', vendorqtyupdate=' + DateS + ' where ffsku=' +
-          QuotedStr(item));
+        DM.RunSql('update ai_items set vendorqty=' + IntToStr(qty) +
+          ', vendorqtyupdate=' + DateS + ' where ffsku=' + QuotedStr(item));
         Label4.Caption := 'Update  Inventory qty Sku=' + item;
         Application.ProcessMessages;
       end;
@@ -2786,23 +2916,26 @@ var
   user: String;
 begin
   user := GetCurrentUserName;
-  if ((Uppercase(GetCurrentUserName) <> 'SHIM') and (Uppercase(GetCurrentUserName) <> 'ADMINISTRATOR')) then
+  if ((Uppercase(GetCurrentUserName) <> 'SHIM') and
+    (Uppercase(GetCurrentUserName) <> 'ADMINISTRATOR')) then
   begin
     // log('exits without any action');
     Exit;
   end;
   DecodeTime(Now, HourNow, MinNow, Sec, MSec);
   DecodeDateFully(Now, Year, Month, Day, DOW);
-  Log('Timer hour=' + IntToStr(HourNow) + ' day of week = ' + IntToStr(DOW) + ' user=' + user, false, false,
-    'SendRequests');
+  Log('Timer hour=' + IntToStr(HourNow) + ' day of week = ' + IntToStr(DOW) +
+    ' user=' + user, false, false, 'SendRequests');
   // user := retStrFieldValue(DM.AlonDb, 'select userid from tools_logged_users where upper(userid) = ' + QuotedStr('ADMINISTRATOR'));
   // if ((Uppercase(user) = 'ADMINISTRATOR') and (Uppercase(GetCurrentUserName) <> 'ADMINISTRATOR')) then
   // Exit;
-  if ((DOW = 1) or (DOW = 7) or ((DOW = 6) and (HourNow > 15)) or ((DOW = 2) and (HourNow < 7))) then
+  if ((DOW = 1) or (DOW = 7) or ((DOW = 6) and (HourNow > 15)) or
+    ((DOW = 2) and (HourNow < 7))) then
     Exit;
   // if (isAdmin) then
   // begin
-  Log('------------Runned by timer-------------------------', false, false, 'SendRequests');
+  Log('------------Runned by timer-------------------------', false, false,
+    'SendRequests');
   // 26-02-2020
   // SendRequests();
   // end;
@@ -2845,13 +2978,15 @@ begin
       SQL.Clear;
       SQL.Add('select orderid, title, email, shipping, name from forders where sent=false and email is not null and email>'
         + QuotedStr(''));
-      SQL.Add('  and  age(shipdate)  between (10 * interval ' + QuotedStr('1 day') + ') and (90 * interval ' +
-        QuotedStr('1 day') + ') order by shipdate');
+      SQL.Add('  and  age(shipdate)  between (10 * interval ' +
+        QuotedStr('1 day') + ') and (90 * interval ' + QuotedStr('1 day') +
+        ') order by shipdate');
       Active := true;
       Count := 0;
       failed := 0;
       First;
-      Log('Found ' + IntToStr(RecordCount) + ' records to send', false, false, 'SendRequests');
+      Log('Found ' + IntToStr(RecordCount) + ' records to send', false, false,
+        'SendRequests');
       if (RecordCount > 0) then
       begin
         DM.SMTP.Host := edSmtp.Text;
@@ -2879,7 +3014,8 @@ begin
           lbFGreen.Caption := 'Trying to connect to ' + DM.SMTP.Host + '...';
           Application.ProcessMessages;
         end;
-        Log('Connected to SMTP server:' + edSmtp.Text + ':' + edPort.Text, false, false, 'SendRequests');
+        Log('Connected to SMTP server:' + edSmtp.Text + ':' + edPort.Text,
+          false, false, 'SendRequests');
         while not Eof do
         begin
           order := Trim(Fields[0].AsString);
@@ -2899,22 +3035,25 @@ begin
             Exit;
           sent := sendmail(order, title, email, ship, sname);
           if (sent) then
-            DM.RunSql('update forders set sent=true, sentdate=' + QuotedStr(DateTimeToStr(Now)) + ' where orderid=' +
+            DM.RunSql('update forders set sent=true, sentdate=' +
+              QuotedStr(DateTimeToStr(Now)) + ' where orderid=' +
               QuotedStr(order))
           else
           begin
             inc(failed);
           end;
-          lbFRed.Caption := 'Send ' + IntToStr(RecNo - failed) + ' of ' + IntToStr(RecordCount) + ' emails. Failed = ' +
-            IntToStr(failed);
-          Log('Send ' + IntToStr(RecNo - failed) + ' of ' + IntToStr(RecordCount) + ' emails. Failed = ' +
-            IntToStr(failed), false, false, 'SendRequests');
+          lbFRed.Caption := 'Send ' + IntToStr(RecNo - failed) + ' of ' +
+            IntToStr(RecordCount) + ' emails. Failed = ' + IntToStr(failed);
+          Log('Send ' + IntToStr(RecNo - failed) + ' of ' +
+            IntToStr(RecordCount) + ' emails. Failed = ' + IntToStr(failed),
+            false, false, 'SendRequests');
           Next;
         end;
       end
       else
       begin
-        Log('All requests were sent... Application exit.+++++++++++++++++++++++', false, false, 'SendRequests');
+        Log('All requests were sent... Application exit.+++++++++++++++++++++++',
+          false, false, 'SendRequests');
         // Application.Terminate;
         Exit;
       end;
@@ -2925,13 +3064,15 @@ begin
   end;
 end;
 
-procedure TfmInventory.SMTPFailedRecipient(Sender: TObject; const AAddress, ACode, AText: string;
-  var VContinue: Boolean);
+procedure TfmInventory.SMTPFailedRecipient(Sender: TObject;
+  const AAddress, ACode, AText: string; var VContinue: Boolean);
 begin
-  Log('Failed recipient. Address=' + AAddress + ' code=' + ACode + ' text=' + AText, false, false, 'SendRequests');
+  Log('Failed recipient. Address=' + AAddress + ' code=' + ACode + ' text=' +
+    AText, false, false, 'SendRequests');
 end;
 
-function TfmInventory.sendmail(order, title, email, ship, sname: string): Boolean;
+function TfmInventory.sendmail(order, title, email, ship,
+  sname: string): Boolean;
 var
   mailBody: TStringList;
   PostMessage: TIdMessage;
@@ -2942,7 +3083,8 @@ begin
   try
     PostMessage.ContentType := 'text/html';
     PostMessage.Organization := 'LilGift';
-    mailBody.Add('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">');
+    mailBody.Add
+      ('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">');
     mailBody.Add('<html xmlns="http://www.w3.org/1999/xhtml">');
     // mailBody.Add('<html>');
     // mailBody.Add('  <head>');
@@ -2950,8 +3092,8 @@ begin
     // mailBody.Add('    <title></title>');
     // mailBody.Add('  </head>');
     mailBody.Add
-      ('  <body>     <p><span style="font-size: 12pt;">Thank you for your recent purchase of our &quot;<strong>' + title
-      + '</strong>&quot; from our store LilGift on Amazon.<br> ');
+      ('  <body>     <p><span style="font-size: 12pt;">Thank you for your recent purchase of our &quot;<strong>'
+      + title + '</strong>&quot; from our store LilGift on Amazon.<br> ');
     mailBody.Add
       ('According to our records, your item should have arrived by now.<br> If it hasn&#39;t, or you were unsatisfied with your purchase in any way, please');
     // mailBody.Add('<a href="mailto:alon@lilgift.com?subject=Customer Service:' + order + ',' + title + '">contact us</a>');
@@ -2970,9 +3112,12 @@ begin
       ('<a href="http://www.amazon.com/gp/help/contact-seller/contact-seller.html?ie=UTF8&marketplaceID=ATVPDKIKX0DER&orderID='
       + order + '&sellerID=AYK2IYC3WT9F3">contact us</a>');
     mailBody.Add(' before you leave your feedback.</span></p>');
-    mailBody.Add('      <form action="https://www.amazon.com/gp/feedback/leave-customer-feedback.html" method="get">');
-    mailBody.Add('        <input name="order" type="hidden" value="' + order + '" />');
-    mailBody.Add('        <table style="width: 100%;" border="0" cellspacing="0" cellpadding="0" align="center">');
+    mailBody.Add
+      ('      <form action="https://www.amazon.com/gp/feedback/leave-customer-feedback.html" method="get">');
+    mailBody.Add('        <input name="order" type="hidden" value="' + order
+      + '" />');
+    mailBody.Add
+      ('        <table style="width: 100%;" border="0" cellspacing="0" cellpadding="0" align="center">');
     mailBody.Add('          <tbody>');
     mailBody.Add('            <tr>');
     mailBody.Add('              <td valign="top">');
@@ -2980,21 +3125,29 @@ begin
       ('                <table class="small" style="width: 100%;" border="0" cellspacing="3" cellpadding="4">');
     mailBody.Add('                  <tbody>');
     mailBody.Add('                    <tr>');
-    mailBody.Add('                      <td width="33%" align="right" valign="top"><strong>Rating:</strong></td>');
+    mailBody.Add
+      ('                      <td width="33%" align="right" valign="top"><strong>Rating:</strong></td>');
     mailBody.Add
       ('                      <td width="66%"><input checked="checked" name=".rating" type="radio" value="5" />5 (Excellent)<br />');
-    mailBody.Add('                      <input name=".rating" type="radio" value="4" />4 (Good)<br />');
-    mailBody.Add('                      <input name=".rating" type="radio" value="3" />3 (Fair)<br />');
-    mailBody.Add('                      <input name=".rating" type="radio" value="2" />2 (Poor)<br />');
-    mailBody.Add('                      <input name=".rating" type="radio" value="1" />1 (Awful)<br />');
+    mailBody.Add
+      ('                      <input name=".rating" type="radio" value="4" />4 (Good)<br />');
+    mailBody.Add
+      ('                      <input name=".rating" type="radio" value="3" />3 (Fair)<br />');
+    mailBody.Add
+      ('                      <input name=".rating" type="radio" value="2" />2 (Poor)<br />');
+    mailBody.Add
+      ('                      <input name=".rating" type="radio" value="1" />1 (Awful)<br />');
     mailBody.Add('                      </td>');
     mailBody.Add('                    </tr>');
     mailBody.Add('                    <tr>');
-    mailBody.Add('                      <td width="33%" align="right" valign="top"><strong>Comments:</strong></td>');
+    mailBody.Add
+      ('                      <td width="33%" align="right" valign="top"><strong>Comments:</strong></td>');
     mailBody.Add
       ('                      <td width="66%"><input maxlength="400" name=".comment" size="50" type="text" /><br />');
-    mailBody.Add('                       <span class="tiny">Max. 200 characters<br />');
-    mailBody.Add('                      </span> <input type="submit" value="Submit" /></td>');
+    mailBody.Add
+      ('                       <span class="tiny">Max. 200 characters<br />');
+    mailBody.Add
+      ('                      </span> <input type="submit" value="Submit" /></td>');
     mailBody.Add('                    </tr>');
     mailBody.Add('                  </tbody>');
     mailBody.Add('                </table>');
@@ -3006,7 +3159,8 @@ begin
     mailBody.Add('      <table border="0" cellspacing="0" cellpadding="0">');
     mailBody.Add('        <tbody>');
     mailBody.Add('          <tr>');
-    mailBody.Add('            <td colspan="3">Here is your order information for reference:</td>');
+    mailBody.Add
+      ('            <td colspan="3">Here is your order information for reference:</td>');
     mailBody.Add('          </tr>');
     mailBody.Add('          <tr>');
     mailBody.Add('            <td>&#160;</td>');
@@ -3049,21 +3203,24 @@ begin
     PostMessage.Body := mailBody;
     // SMTP.PostMessage.Attachments.Add('tmp.htm');
     PostMessage.Subject := 'Regarding your purchase of ' + title + '';
-    lbFGreen.Caption := 'Sends mail to <' + PostMessage.Recipients.EMailAddresses + '>';
+    lbFGreen.Caption := 'Sends mail to <' +
+      PostMessage.Recipients.EMailAddresses + '>';
     Application.ProcessMessages;
     // if (not SMTP.Connected) then
     // SMTP.Connect;
     try
       DM.SMTP.Send(PostMessage);
-      Log('Sends mail to <' + PostMessage.Recipients.EMailAddresses + '>' + ' order #=' + order + ' name=' + sname,
-        false, false, 'SendRequests');
+      Log('Sends mail to <' + PostMessage.Recipients.EMailAddresses + '>' +
+        ' order #=' + order + ' name=' + sname, false, false, 'SendRequests');
       lbOrderNo.Caption := order;
       lbLastSendDate.Caption := DateTimeToStr(Now);
       lbSentTo.Caption := sname;
     except
-      Log('Failed to send mail to <' + PostMessage.Recipients.EMailAddresses + '> ' + ' order #=' + order + ' name=' +
-        sname, false, false, 'SendRequests');
-      lbFRed.Caption := 'Failed to send mail to <' + PostMessage.Recipients.EMailAddresses + '>';
+      Log('Failed to send mail to <' + PostMessage.Recipients.EMailAddresses +
+        '> ' + ' order #=' + order + ' name=' + sname, false, false,
+        'SendRequests');
+      lbFRed.Caption := 'Failed to send mail to <' +
+        PostMessage.Recipients.EMailAddresses + '>';
       Result := false;
       Exit;
     end;
@@ -3153,11 +3310,13 @@ begin
     Month := MonthOf(date);
     Year := YearOf(date);
   end;
-  DM.RunSql('delete from items_sold_monthly where year = ' + IntToStr(Year) + ' and month =' + IntToStr(Month));
+  DM.RunSql('delete from items_sold_monthly where year = ' + IntToStr(Year) +
+    ' and month =' + IntToStr(Month));
   SQL := 'insert into items_sold_monthly ' +
     'select upper(vendor), sku, extract(year from orderdate),extract(month from orderdate) ,sum(qty) from profitreport '
-    + 'where vendor is not null and extract(year from orderdate) = ' + IntToStr(Year) +
-    ' and extract(month from orderdate) = ' + IntToStr(Month) + ' group by 1,2,3,4';
+    + 'where vendor is not null and extract(year from orderdate) = ' +
+    IntToStr(Year) + ' and extract(month from orderdate) = ' + IntToStr(Month) +
+    ' group by 1,2,3,4';
   DM.RunSql(SQL);
   if (Sender <> nil) then
     ShowMessage('Done');
@@ -3256,7 +3415,8 @@ begin
     begin
       Active := false;
       SQL.Clear;
-      SQL.Add('select ' + sel + ', (sum(principal) / sum(qty)) principal,(sum(ainvcost*qty) / sum(qty)) ainvcost1, ');
+      SQL.Add('select ' + sel +
+        ', (sum(principal) / sum(qty)) principal,(sum(ainvcost*qty) / sum(qty)) ainvcost1, ');
       SQL.Add('(sum(FBAPerUnitFulfillmentFee) + sum(FBAWeightBasedFee) + ');
       SQL.Add('sum(FBAPerOrderFulfillmentFee) + sum(Commission))  TotalFees, ');
       SQL.Add('sum(qty) qtyS, sum(profit) profit, sum(profit) / sum(qty) itemProfit, ');
@@ -3270,7 +3430,8 @@ begin
       SQL.Add(' and ainvcost > 0 and principal>0');
       if (Trim(edVendors.Text) > '') then
       begin
-        SQL.Add(' and upper(vendor) in (''' + ReplaceStr(Uppercase(edVendors.Text), ',', ''',''') + ''')');
+        SQL.Add(' and upper(vendor) in (''' +
+          ReplaceStr(Uppercase(edVendors.Text), ',', ''',''') + ''')');
       end;
       if (cbUseRange.Checked) then
         edSku.Text := '';
@@ -3301,7 +3462,8 @@ var
   dateFrom, dateTo: TDate;
   lbThisYear, lbPreviousYear: TfrxMemoView;
 
-  function getPlaceInArray(arrPar: DBUnit.TVendorArray; StrToFind: string; len: Integer): Integer;
+  function getPlaceInArray(arrPar: DBUnit.TVendorArray; StrToFind: string;
+    len: Integer): Integer;
   var
     i: Integer;
   begin
@@ -3321,16 +3483,20 @@ begin
   with DM do
   begin
     // lbVendor := DM.frxTwoCompareProfit.FindObject('lbVendor') as TfrxMemoView;
-    lbThisYear := DM.frxTwoCompareProfit.FindObject('lbThisYear') as TfrxMemoView;
-    lbPreviousYear := DM.frxTwoCompareProfit.FindObject('lbPreviousYear') as TfrxMemoView;
+    lbThisYear := DM.frxTwoCompareProfit.FindObject('lbThisYear')
+      as TfrxMemoView;
+    lbPreviousYear := DM.frxTwoCompareProfit.FindObject('lbPreviousYear')
+      as TfrxMemoView;
     lbThisYear.Text := '';
     lbPreviousYear.Text := '';
     // lbThisYearProfit.Text := '';
     // lbPreviousYearProfit.Text := '';
-    countVendors := DM.getProfitVendorsCount(edCp2Vendors.Text, edDateFrom3.date, IncDay(edDateTo3.date, 1));
+    countVendors := DM.getProfitVendorsCount(edCp2Vendors.Text,
+      edDateFrom3.date, IncDay(edDateTo3.date, 1));
     if (countVendors = 0) then
     begin
-      MessageBox(0, 'Not found data for this period', '', MB_ICONEXCLAMATION or MB_OK);
+      MessageBox(0, 'Not found data for this period', '',
+        MB_ICONEXCLAMATION or MB_OK);
       Exit;
     end;
     SetLength(cpVendors, countVendors);
@@ -3339,7 +3505,8 @@ begin
     SetLength(cpMonth1, countVendors);
     SetLength(cpMonth2, countVendors);
     frxDsTwoCompareProfit.RangeEndCount := countVendors;
-    tVend := DM.getVendorsForProfitReport(edCp2Vendors.Text, tVend, edDateFrom3.date, IncDay(edDateTo3.date, 1));
+    tVend := DM.getVendorsForProfitReport(edCp2Vendors.Text, tVend,
+      edDateFrom3.date, IncDay(edDateTo3.date, 1));
 
     for i := 0 to countVendors - 1 do
       cpVendors[i] := tVend[i];
@@ -3356,7 +3523,8 @@ begin
         SQL.Add(' where (orderdate between :DateFrom and :DateTo)');
         if ((Trim(edCp2Vendors.Text) > '')) then
         begin
-          SQL.Add(' and upper(vendor) in (''' + ReplaceStr(Uppercase(edCp2Vendors.Text), ',', ''',''') + ''')');
+          SQL.Add(' and upper(vendor) in (''' +
+            ReplaceStr(Uppercase(edCp2Vendors.Text), ',', ''',''') + ''')');
         end
         else
           SQL.Add(' and vendor is not null');
@@ -3388,7 +3556,8 @@ begin
         SQL.Add(' where (orderdate between :DateFrom and :DateTo)');
         if ((Trim(edCp2Vendors.Text) > '')) then
         begin
-          SQL.Add(' and upper(vendor) in (''' + ReplaceStr(Uppercase(edCp2Vendors.Text), ',', ''',''') + ''')');
+          SQL.Add(' and upper(vendor) in (''' +
+            ReplaceStr(Uppercase(edCp2Vendors.Text), ',', ''',''') + ''')');
         end
         else
           SQL.Add(' and vendor is not null');
@@ -3430,10 +3599,11 @@ var
   yearMonth, curVendor: string;
   tVend: DBUnit.TVendorArray;
   profit: Double;
-  lbField1, lbField2, lbField3, lbField4, lbField5, lbField6, lbField7, lbField8, lbField9, lbField10, lbField11,
-    lbField12: TfrxMemoView;
+  lbField1, lbField2, lbField3, lbField4, lbField5, lbField6, lbField7,
+    lbField8, lbField9, lbField10, lbField11, lbField12: TfrxMemoView;
 
-  function getPlaceInArray(arrPar: DBUnit.TVendorArray; StrToFind: string; len: Integer): Integer;
+  function getPlaceInArray(arrPar: DBUnit.TVendorArray; StrToFind: string;
+    len: Integer): Integer;
   var
     i: Integer;
   begin
@@ -3458,18 +3628,30 @@ begin
   end;
   with DM do
   begin
-    lbField1 := DM.frxCompareProfitReport.FindObject('lbField1') as TfrxMemoView;
-    lbField2 := DM.frxCompareProfitReport.FindObject('lbField2') as TfrxMemoView;
-    lbField3 := DM.frxCompareProfitReport.FindObject('lbField3') as TfrxMemoView;
-    lbField4 := DM.frxCompareProfitReport.FindObject('lbField4') as TfrxMemoView;
-    lbField5 := DM.frxCompareProfitReport.FindObject('lbField5') as TfrxMemoView;
-    lbField6 := DM.frxCompareProfitReport.FindObject('lbField6') as TfrxMemoView;
-    lbField7 := DM.frxCompareProfitReport.FindObject('lbField7') as TfrxMemoView;
-    lbField8 := DM.frxCompareProfitReport.FindObject('lbField8') as TfrxMemoView;
-    lbField9 := DM.frxCompareProfitReport.FindObject('lbField9') as TfrxMemoView;
-    lbField10 := DM.frxCompareProfitReport.FindObject('lbField10') as TfrxMemoView;
-    lbField11 := DM.frxCompareProfitReport.FindObject('lbField11') as TfrxMemoView;
-    lbField12 := DM.frxCompareProfitReport.FindObject('lbField12') as TfrxMemoView;
+    lbField1 := DM.frxCompareProfitReport.FindObject('lbField1')
+      as TfrxMemoView;
+    lbField2 := DM.frxCompareProfitReport.FindObject('lbField2')
+      as TfrxMemoView;
+    lbField3 := DM.frxCompareProfitReport.FindObject('lbField3')
+      as TfrxMemoView;
+    lbField4 := DM.frxCompareProfitReport.FindObject('lbField4')
+      as TfrxMemoView;
+    lbField5 := DM.frxCompareProfitReport.FindObject('lbField5')
+      as TfrxMemoView;
+    lbField6 := DM.frxCompareProfitReport.FindObject('lbField6')
+      as TfrxMemoView;
+    lbField7 := DM.frxCompareProfitReport.FindObject('lbField7')
+      as TfrxMemoView;
+    lbField8 := DM.frxCompareProfitReport.FindObject('lbField8')
+      as TfrxMemoView;
+    lbField9 := DM.frxCompareProfitReport.FindObject('lbField9')
+      as TfrxMemoView;
+    lbField10 := DM.frxCompareProfitReport.FindObject('lbField10')
+      as TfrxMemoView;
+    lbField11 := DM.frxCompareProfitReport.FindObject('lbField11')
+      as TfrxMemoView;
+    lbField12 := DM.frxCompareProfitReport.FindObject('lbField12')
+      as TfrxMemoView;
     lbField1.Text := '';
     lbField2.Text := '';
     lbField3.Text := '';
@@ -3482,7 +3664,8 @@ begin
     lbField10.Text := '';
     lbField11.Text := '';
     lbField12.Text := '';
-    countVendors := DM.getProfitVendorsCount(edCpVendors.Text, edDateFrom2.date, IncDay(edDateTo2.date, 1));
+    countVendors := DM.getProfitVendorsCount(edCpVendors.Text, edDateFrom2.date,
+      IncDay(edDateTo2.date, 1));
     SetLength(cpVendors, countVendors);
     SetLength(tVend, countVendors);
     SetLength(months, 12);
@@ -3511,7 +3694,8 @@ begin
     SetLength(cpMonth11, countVendors);
     SetLength(cpMonth12, countVendors);
     frxDsCompareProfitReport.RangeEndCount := countVendors;
-    tVend := DM.getVendorsForProfitReport(edCpVendors.Text, tVend, edDateFrom2.date, IncDay(edDateTo2.date, 1));
+    tVend := DM.getVendorsForProfitReport(edCpVendors.Text, tVend,
+      edDateFrom2.date, IncDay(edDateTo2.date, 1));
     for i := 0 to countVendors - 1 do
       cpVendors[i] := tVend[i];
     q := TFdQuery.Create(nil);
@@ -3526,7 +3710,8 @@ begin
           SQL.Add(' where (orderdate between :DateFrom and :DateTo)');
           if ((Trim(edCpVendors.Text) > '')) then
           begin
-            SQL.Add(' and upper(vendor) in (''' + ReplaceStr(Uppercase(edCpVendors.Text), ',', ''',''') + ''')');
+            SQL.Add(' and upper(vendor) in (''' +
+              ReplaceStr(Uppercase(edCpVendors.Text), ',', ''',''') + ''')');
           end;
           SQL.Add(' group  by year, month');
           SQL.Add(' order  by year, month');
@@ -3575,7 +3760,8 @@ begin
           SQL.Add(' where (orderdate between :DateFrom and :DateTo)');
           if ((Trim(edCpVendors.Text) > '')) then
           begin
-            SQL.Add(' and upper(vendor) in (''' + ReplaceStr(Uppercase(edCpVendors.Text), ',', ''',''') + ''')');
+            SQL.Add(' and upper(vendor) in (''' +
+              ReplaceStr(Uppercase(edCpVendors.Text), ',', ''',''') + ''')');
           end
           else
             SQL.Add(' and vendor is not null');
@@ -3643,6 +3829,39 @@ begin
   pnRange.Visible := false;
 end;
 
+procedure TfmInventory.BitBtn1Click(Sender: TObject);
+var
+  PostMessage: TIdMessage;
+begin
+  DM.tbSelfInfo.Active := true;
+  DM.tbSelfInfo.Filter := 'type=' + QuotedStr('1');
+  DM.tbSelfInfo.Filtered := true;
+  SMTP.Host := DM.tbSelfInfosmtp_server.Value;
+  SMTP.Port := DM.tbSelfInfosmtp_port.Value; // 80, 3535, 25, 465 (SSL)
+  SMTP.Username := DM.tbSelfInfosmtp_user.Value;
+  SMTP.Password := DM.tbSelfInfosmtp_password.Value;
+
+  try
+    begin
+      SMTP.Connect;
+      PostMessage := TIdMessage.Create(nil);
+    PostMessage.Organization := DM.tbSelfInfocompany.AsString;
+    PostMessage.From.Name := DM.tbSelfInfomyname.Value;
+    PostMessage.From.Address := DM.tbSelfInfoemail.Value;
+    PostMessage.ReplyTo.EMailAddresses := DM.tbSelfInfoemail.Value;
+    PostMessage.Recipients.EMailAddresses := 'frederic@barefootdreams.com';
+      SMTP.Verify('frederic@barefootdreams.com');
+      ShowMessage('Connect successfull');
+    end;
+  except
+    on e: SysUtils.Exception do
+    begin
+      ShowMessage(e.Message);
+    end;
+  end;
+
+end;
+
 procedure TfmInventory.btn5000CostClick(Sender: TObject);
 begin
   addActivity(DM.AlonDb, 'TfmInventory.btn5000CostClick');
@@ -3663,10 +3882,14 @@ begin
   addActivity(DM.AlonDb, 'TfmInventory.btnPeriodCompareReportClick');
   with DM do
   begin
-    lbFirstDateRange := DM.frxCompareItemProfitByDates.FindObject('lbFirstDateRange') as TfrxMemoView;
-    lbSecDateRange := DM.frxCompareItemProfitByDates.FindObject('lbSecDateRange') as TfrxMemoView;
-    lbFirstDateRange.Text := DateToStr(edCurDatefrom.date) + '-' + DateToStr(edCurDateTo.date);
-    lbSecDateRange.Text := DateToStr(edPrevDateFrom.date) + '-' + DateToStr(edPrevDateTo.date);
+    lbFirstDateRange := DM.frxCompareItemProfitByDates.FindObject
+      ('lbFirstDateRange') as TfrxMemoView;
+    lbSecDateRange := DM.frxCompareItemProfitByDates.FindObject
+      ('lbSecDateRange') as TfrxMemoView;
+    lbFirstDateRange.Text := DateToStr(edCurDatefrom.date) + '-' +
+      DateToStr(edCurDateTo.date);
+    lbSecDateRange.Text := DateToStr(edPrevDateFrom.date) + '-' +
+      DateToStr(edPrevDateTo.date);
     try
       with qCompByDates do
       begin
@@ -3711,7 +3934,8 @@ begin
     select := ''''' as Vendor,SKU ';
   if (groupBy = 'Vendor') then
     select := 'Vendor, '''' as SKU';
-  vendor := Uppercase(Trim(cbPoReportVendors.Items.Strings[cbPoReportVendors.ItemIndex]));
+  vendor := Uppercase(Trim(cbPoReportVendors.Items.Strings
+    [cbPoReportVendors.ItemIndex]));
 
   with DM.qPoReport do
   begin
@@ -3743,16 +3967,19 @@ end;
 procedure TfmInventory.btnSoldItemsReportClick(Sender: TObject);
 var
   vendor, select, psik, koteret, FileName, mlai: string;
-  i, curMonth, monthCount, curYear, startYear, endYear, startMonth, endMonth: Integer;
+  i, curMonth, monthCount, curYear, startYear, endYear, startMonth,
+    endMonth: Integer;
   query: TFdQuery;
   StrLst: TStringList;
   curDate: TDate;
 const
-  monthNames: array [1 .. 12] of string = ('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
-    'September', 'October', 'November', 'December');
+  monthNames: array [1 .. 12] of string = ('January', 'February', 'March',
+    'April', 'May', 'June', 'July', 'August', 'September', 'October',
+    'November', 'December');
 begin
   addActivity(DM.AlonDb, 'TfmInventory.btnSoldItemsReportClick');
-  vendor := Uppercase(Trim(cbSIRepVendors.Items.Strings[cbSIRepVendors.ItemIndex]));
+  vendor := Uppercase(Trim(cbSIRepVendors.Items.Strings
+    [cbSIRepVendors.ItemIndex]));
   if ((vendor = '') or (vendor = 'ALL')) then
     raise Exception.Create('Please choose vendor');
 
@@ -3762,7 +3989,8 @@ begin
   endMonth := MonthOf(edSIRepDateTo.date);
   if (startYear > endYear) then
     raise Exception.Create('Wrong dates, start after end');
-  if ((startYear = endYear) and ((startMonth > endMonth) or (startMonth = endMonth))) then
+  if ((startYear = endYear) and ((startMonth > endMonth) or
+    (startMonth = endMonth))) then
     raise Exception.Create('Wrong dates, check months');
 
   monthCount := MonthsBetween(edSIRepDateFrom.date, edSIRepDateTo.date) + 2;
@@ -3777,13 +4005,15 @@ begin
     curMonth := MonthOf(curDate);
     curYear := YearOf(curDate);
     select := select + #13 +
-      ' (select qty from items_sold_monthly pr where pr.sku=prm.sku and pr.vendor = prm.vendor and month = ' +
-      IntToStr(curMonth) + ' and year = ' + IntToStr(curYear) + ') as ' + monthNames[curMonth] + psik;
+      ' (select qty from items_sold_monthly pr where pr.sku=prm.sku and pr.vendor = prm.vendor and month = '
+      + IntToStr(curMonth) + ' and year = ' + IntToStr(curYear) + ') as ' +
+      monthNames[curMonth] + psik;
     koteret := koteret + #9 + monthNames[curMonth] + ' ' + IntToStr(curYear);
     curDate := IncMonth(curDate);
   end;
-  select := select + #13 + ' from items_sold_monthly prm where upper(vendor) = ' + QuotedStr(Uppercase(vendor)) +
-    ' and ((year = ' + IntToStr(startYear) + ' and month >= ' + IntToStr(startMonth) + ') or ' + '(year = ' +
+  select := select + #13 + ' from items_sold_monthly prm where upper(vendor) = '
+    + QuotedStr(Uppercase(vendor)) + ' and ((year = ' + IntToStr(startYear) +
+    ' and month >= ' + IntToStr(startMonth) + ') or ' + '(year = ' +
     IntToStr(endYear) + ' and month <= ' + IntToStr(endMonth) + '))';
   query := TFdQuery.Create(nil);
   StrLst := TStringList.Create;
@@ -3813,14 +4043,17 @@ begin
           begin
             select := select + Fields[i].AsString + psik;
           end;
-          mlai := retStrFieldValue(DM.AlonDb, 'select qtyinv from ai_items where sku=' + QuotedStr(Fields[0].AsString));
+          mlai := retStrFieldValue(DM.AlonDb,
+            'select qtyinv from ai_items where sku=' +
+            QuotedStr(Fields[0].AsString));
           select := select + mlai;
           StrLst.Add(select);
           select := '';
           Next;
         end;
       end;
-      FileName := 'SalesByVendor_' + Uppercase(vendor) + '_' + DateToFileName(edSIRepDateFrom.date, false) + '_' +
+      FileName := 'SalesByVendor_' + Uppercase(vendor) + '_' +
+        DateToFileName(edSIRepDateFrom.date, false) + '_' +
         DateToFileName(edSIRepDateTo.date, false) + '.xls';
       StrLst.SaveToFile(FileName);
       ShowMessage('Report saved. File name ' + #13 + FileName + '');

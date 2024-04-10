@@ -204,14 +204,12 @@ object fmInventory: TfmInventory
               FieldName = 'qtyord10'
               ReadOnly = True
               Title.Alignment = taCenter
-              Width = 64
               Visible = True
             end
             item
               Expanded = False
               FieldName = 'mycost'
               Title.Alignment = taCenter
-              Width = 64
               Visible = True
             end
             item
@@ -219,7 +217,6 @@ object fmInventory: TfmInventory
               FieldName = 'price'
               ReadOnly = True
               Title.Alignment = taCenter
-              Width = 64
               Visible = True
             end
             item
@@ -1078,9 +1075,9 @@ object fmInventory: TfmInventory
         TabOrder = 0
         object Panel15: TPanel
           Left = 43
-          Top = 50
+          Top = 49
           Width = 758
-          Height = 400
+          Height = 471
           BorderStyle = bsSingle
           TabOrder = 0
           object Label37: TLabel
@@ -1113,10 +1110,10 @@ object fmInventory: TfmInventory
           end
           object Label41: TLabel
             Left = 80
-            Top = 299
-            Width = 62
+            Top = 300
+            Width = 67
             Height = 16
-            Caption = 'Copy to :'
+            Caption = 'Reply to :'
           end
           object Label42: TLabel
             Left = 80
@@ -1134,7 +1131,7 @@ object fmInventory: TfmInventory
           end
           object Label44: TLabel
             Left = 448
-            Top = 345
+            Top = 385
             Width = 99
             Height = 16
             Caption = 'Mails per hour'
@@ -1174,9 +1171,16 @@ object fmInventory: TfmInventory
             Height = 16
             Caption = 'Last feedback request send'
           end
+          object Label71: TLabel
+            Left = 80
+            Top = 325
+            Width = 62
+            Height = 16
+            Caption = 'Copy to :'
+          end
           object edCopyTo: TEdit
             Left = 196
-            Top = 296
+            Top = 322
             Width = 439
             Height = 24
             TabOrder = 0
@@ -1229,7 +1233,7 @@ object fmInventory: TfmInventory
           end
           object btnSendRequest: TBitBtn
             Left = 196
-            Top = 339
+            Top = 379
             Width = 119
             Height = 33
             Caption = 'Send request'
@@ -1244,7 +1248,7 @@ object fmInventory: TfmInventory
           end
           object edMailsPerHour: TEdit
             Left = 410
-            Top = 342
+            Top = 382
             Width = 33
             Height = 24
             TabOrder = 7
@@ -1350,12 +1354,21 @@ object fmInventory: TfmInventory
             DataSource = DM.dsSelfInfo
             TabOrder = 9
           end
+          object edReplyTo: TDBEdit
+            Left = 196
+            Top = 297
+            Width = 439
+            Height = 24
+            DataField = 'reply_To'
+            DataSource = DM.dsSelfInfo
+            TabOrder = 10
+          end
         end
         object adminPanel2: TPanel
           Left = 807
           Top = 50
           Width = 562
-          Height = 399
+          Height = 471
           BevelInner = bvLowered
           BevelKind = bkFlat
           TabOrder = 1
@@ -1755,7 +1768,7 @@ object fmInventory: TfmInventory
       end
       object Panel8: TPanel
         Left = 8
-        Top = 139
+        Top = 136
         Width = 513
         Height = 361
         BevelInner = bvSpace
@@ -1966,9 +1979,9 @@ object fmInventory: TfmInventory
       end
       object adminPanel: TPanel
         Left = 527
-        Top = 336
+        Top = 325
         Width = 663
-        Height = 161
+        Height = 172
         BevelInner = bvRaised
         BevelKind = bkSoft
         TabOrder = 7
@@ -3108,7 +3121,7 @@ object fmInventory: TfmInventory
       end
     end
     object Ver1291: TMenuItem
-      Caption = 'Ver. 6.05 (64 bit)'
+      Caption = 'Ver. 6.15'
       Checked = True
       Enabled = False
     end
@@ -3709,5 +3722,12 @@ object fmInventory: TfmInventory
     SynchronizeFlushReload = True
     Left = 840
     Top = 72
+  end
+  object SMTP: TIdSMTP
+    MailAgent = 'MS Outlook'
+    AuthType = satSASL
+    SASLMechanisms = <>
+    Left = 768
+    Top = 496
   end
 end

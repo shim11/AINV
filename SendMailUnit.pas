@@ -7,10 +7,8 @@ uses
   Dialogs, Buttons, OleCtrls, SHDocVw, ExtCtrls, StdCtrls, IdBaseComponent,
   IdComponent, IdTCPConnection, IdTCPClient, Menus, ShellApi, MyFunctions,
   IdExplicitTLSClientServerBase, IdMessageClient, IdSMTPBase, IdSMTP, IdMessage,
-  IdAttachmentFile, IdText, frxClass, frxExportPDF, SqlTimSt, FireDAC.Stan.ExprFuncs
-  // IdExplicitTLSClientServerBase,
-  // IdMessageClient, IdSMTPBase, IdSMTP,  Menus, ComObj, JPEG, ActiveX
-    ;
+  IdAttachmentFile, IdText, frxClass, frxExportPDF, SqlTimSt, IdSSLOpenSSL,
+  FireDAC.Stan.ExprFuncs;
 
 type
   TfmSendMail = class(TForm)
@@ -60,6 +58,7 @@ var
   attFileA, attPdf: TIdAttachmentFile;
   bodyText: TIdText;
   htmlAdd, htmlToSave: string;
+  IdSSLHandler: TIdSSLIOHandlerSocketOpenSSL;
 begin
   if (edSendTo.Text = '') then
     raise Exception.Create('Must be <To> email address');
@@ -69,7 +68,12 @@ begin
   DM.tbSelfInfo.Filter := 'type=' + QuotedStr('1');
   DM.tbSelfInfo.Filtered := true;
   SMTP.Host := DM.tbSelfInfosmtp_server.Value;
-  SMTP.Port := DM.tbSelfInfosmtp_port.Value;
+  SMTP.Port := DM.tbSelfInfosmtp_port.Value;     // 80, 3535, 25, 465 (SSL)
+  SMTP.AuthType := satDefault;
+  IdSSLHandler := TIdSSLIOHandlerSocketOpenSSL.Create(SMTP);
+  SMTP.IOHandler := IdSSLHandler;
+  SMTP.UseTLS := utUseExplicitTLS;
+  IdSSLHandler.SSLOptions.SSLVersions := [sslvTLSv1_1, sslvTLSv1_2] ;
   SMTP.Username := DM.tbSelfInfosmtp_user.Value;
   SMTP.Password := DM.tbSelfInfosmtp_password.Value;
   SMTP.Connect;
@@ -90,7 +94,7 @@ begin
     PostMessage.From.Name := DM.tbSelfInfomyname.Value;
     PostMessage.CCList.EMailAddresses := edCC.Text;
     PostMessage.From.Address := DM.tbSelfInfoemail.Value;
-    PostMessage.ReplyTo.EMailAddresses := DM.tbSelfInfoemail.Value;
+    PostMessage.ReplyTo.EMailAddresses := DM.tbSelfInforeplyTo.Value;
     PostMessage.Recipients.EMailAddresses := edSendTo.Text;
     // PostMessage.Recipients.EMailAddresses := 'klubatok@gmail.com';
     PostMessage.BccList.Clear;

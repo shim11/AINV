@@ -11,7 +11,6 @@ object fmEditItem: TfmEditItem
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   KeyPreview = True
-  OldCreateOrder = False
   PopupMenu = PopupMenu1
   Position = poMainFormCenter
   PrintScale = poNone
@@ -19,7 +18,6 @@ object fmEditItem: TfmEditItem
   OnCloseQuery = FormCloseQuery
   OnKeyUp = FormKeyUp
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 16
   object Panel1: TPanel
     Left = 0
@@ -28,6 +26,8 @@ object fmEditItem: TfmEditItem
     Height = 41
     Align = alBottom
     TabOrder = 0
+    ExplicitTop = 280
+    ExplicitWidth = 521
     DesignSize = (
       525
       41)
@@ -62,30 +62,12 @@ object fmEditItem: TfmEditItem
       OnClick = sbCloseClick
       ExplicitLeft = 446
     end
-    object PMDBNavigator1: TPMDBNavigator
-      Left = 1
-      Top = 1
-      Width = 304
-      Height = 39
+    object PMDBNavigator1: TDBNavigator
+      Left = 14
+      Top = 6
+      Width = 430
+      Height = 25
       DataSource = DM.dsItems
-      VisibleButtons = [nbPost]
-      Align = alLeft
-      Hints.Strings = (
-        'First record'
-        'Prior record'
-        'Next record'
-        'Last record'
-        'Insert record'
-        'Delete record'
-        'Edit current record'
-        'Post'
-        'Cancel'
-        'Refresh'
-        'Locate'
-        'Filter'
-        'Close')
-      ParentShowHint = False
-      PopupMenu = PopupMenu1
       TabOrder = 0
     end
   end
@@ -96,6 +78,8 @@ object fmEditItem: TfmEditItem
     Height = 281
     Align = alClient
     TabOrder = 1
+    ExplicitWidth = 521
+    ExplicitHeight = 280
     object edSearchByName: TEdit
       Left = 257
       Top = 28

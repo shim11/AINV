@@ -886,7 +886,7 @@ object DM: TDM
     Top = 584
   end
   object frx5000: TfrxReport
-    Version = '6.2.1'
+    Version = '6.8'
     DotMatrixReport = False
     EngineOptions.PrintIfEmpty = False
     IniFile = '\Software\Fast Reports'
@@ -927,6 +927,7 @@ object DM: TDM
       TopMargin = 10.000000000000000000
       BottomMargin = 10.000000000000000000
       Frame.Typ = []
+      MirrorMode = []
       object PageFooter1: TfrxPageFooter
         FillType = ftBrush
         Frame.Typ = []
@@ -1245,6 +1246,7 @@ object DM: TDM
     OverwritePrompt = False
     CreationTime = 43201.953822858800000000
     DataOnly = False
+    EmbeddedFonts = True
     OpenAfterExport = False
     PrintOptimized = True
     Outline = False
@@ -1262,6 +1264,8 @@ object DM: TDM
     CenterWindow = False
     PrintScaling = False
     PdfA = True
+    PDFStandard = psPDFA_2a
+    PDFVersion = pv17
     Left = 944
     Top = 32
   end
@@ -1305,7 +1309,7 @@ object DM: TDM
     Top = 200
   end
   object frxProfitReport: TfrxReport
-    Version = '6.2.1'
+    Version = '6.8'
     DotMatrixReport = False
     IniFile = '\Software\Fast Reports'
     PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick]
@@ -1341,6 +1345,7 @@ object DM: TDM
       TopMargin = 10.000000000000000000
       BottomMargin = 10.000000000000000000
       Frame.Typ = []
+      MirrorMode = []
       object PageHeader1: TfrxPageHeader
         FillType = ftBrush
         Frame.Typ = []
@@ -2109,7 +2114,7 @@ object DM: TDM
     Top = 640
   end
   object frxTwoCompareProfit: TfrxReport
-    Version = '6.2.1'
+    Version = '6.8'
     DotMatrixReport = False
     IniFile = '\Software\Fast Reports'
     PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick]
@@ -2145,6 +2150,7 @@ object DM: TDM
       TopMargin = 10.000000000000000000
       BottomMargin = 10.000000000000000000
       Frame.Typ = []
+      MirrorMode = []
       object PageHeader1: TfrxPageHeader
         FillType = ftBrush
         Frame.Typ = []
@@ -2495,7 +2501,7 @@ object DM: TDM
     Top = 584
   end
   object frxCompareProfitReport: TfrxReport
-    Version = '6.2.1'
+    Version = '6.8'
     DotMatrixReport = False
     IniFile = '\Software\Fast Reports'
     PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick]
@@ -2531,6 +2537,7 @@ object DM: TDM
       TopMargin = 10.000000000000000000
       BottomMargin = 10.000000000000000000
       Frame.Typ = []
+      MirrorMode = []
       object PageHeader1: TfrxPageHeader
         FillType = ftBrush
         Frame.Typ = []
@@ -3397,7 +3404,7 @@ object DM: TDM
     Top = 200
   end
   object frxRep: TfrxReport
-    Version = '6.2.1'
+    Version = '6.8'
     DotMatrixReport = False
     IniFile = '\Software\Fast Reports'
     PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick]
@@ -3433,6 +3440,7 @@ object DM: TDM
       TopMargin = 10.000000000000000000
       BottomMargin = 10.000000000000000000
       Frame.Typ = [ftBottom]
+      MirrorMode = []
       object PageHeader1: TfrxPageHeader
         FillType = ftBrush
         Frame.Typ = []
@@ -3691,7 +3699,7 @@ object DM: TDM
     Top = 640
   end
   object frxPrintLines: TfrxReport
-    Version = '6.2.1'
+    Version = '6.8'
     DotMatrixReport = False
     IniFile = '\Software\Fast Reports'
     PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick]
@@ -3727,6 +3735,7 @@ object DM: TDM
       TopMargin = 10.000000000000000000
       BottomMargin = 10.000000000000000000
       Frame.Typ = []
+      MirrorMode = []
       object PageHeader1: TfrxPageHeader
         FillType = ftBrush
         Frame.Typ = []
@@ -4041,7 +4050,7 @@ object DM: TDM
     Top = 640
   end
   object frxPoReport: TfrxReport
-    Version = '6.2.1'
+    Version = '6.8'
     DotMatrixReport = False
     IniFile = '\Software\Fast Reports'
     PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick]
@@ -4077,6 +4086,7 @@ object DM: TDM
       TopMargin = 10.000000000000000000
       BottomMargin = 10.000000000000000000
       Frame.Typ = []
+      MirrorMode = []
       PrintIfEmpty = False
       object PageHeader1: TfrxPageHeader
         FillType = ftBrush
@@ -4251,7 +4261,6 @@ object DM: TDM
     end
   end
   object HTTP1: TIdHTTP
-    AllowCookies = True
     ProxyParams.BasicAuthentication = False
     ProxyParams.ProxyPort = 0
     Request.ContentLength = -1
@@ -4367,6 +4376,10 @@ object DM: TDM
       Origin = 'smtp_password'
       Size = 64
     end
+    object tbSelfInforeplyTo: TWideStringField
+      FieldName = 'reply_To'
+      Size = 128
+    end
   end
   object tbMailArchive: TFDTable
     IndexFieldNames = 'doctype;orderno;orderversion'
@@ -4465,7 +4478,7 @@ object DM: TDM
     end
   end
   object frxCompareItemProfitByDates: TfrxReport
-    Version = '6.2.1'
+    Version = '6.8'
     DotMatrixReport = False
     IniFile = '\Software\Fast Reports'
     PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick]
@@ -4501,6 +4514,7 @@ object DM: TDM
       TopMargin = 10.000000000000000000
       BottomMargin = 10.000000000000000000
       Frame.Typ = []
+      MirrorMode = []
       object PageHeader1: TfrxPageHeader
         FillType = ftBrush
         Frame.Typ = []
@@ -4892,7 +4906,7 @@ object DM: TDM
     Top = 120
   end
   object frxPrintItemLabels: TfrxReport
-    Version = '6.2.1'
+    Version = '6.8'
     DotMatrixReport = False
     EngineOptions.PrintIfEmpty = False
     IniFile = '\Software\Fast Reports'
@@ -4941,6 +4955,7 @@ object DM: TDM
         '71'
         '142')
       Frame.Typ = []
+      MirrorMode = []
       PrintIfEmpty = False
       object MasterData1: TfrxMasterData
         FillType = ftBrush
@@ -5056,6 +5071,7 @@ object DM: TDM
           Font.Name = 'Consolas'
           Font.Style = []
           Font.Quality = fqClearTypeNatural
+          ColorBar = clBlack
         end
       end
     end

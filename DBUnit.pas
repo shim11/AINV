@@ -284,6 +284,7 @@ type
     tbReconReportlastupdate: TSQLTimeStampField;
     tbReconReportread: TIntegerField;
     dsReconReport: TDataSource;
+    tbSelfInforeplyTo: TWideStringField;
     procedure DataModuleCreate(Sender: TObject);
     procedure tbPOLinesCalcFields(DataSet: TDataSet);
     procedure tbPoCalcFields(DataSet: TDataSet);
@@ -1940,7 +1941,7 @@ var
   needInsert: Boolean;
   maxPo: Integer;
 begin
-  // ShowMessage(PO+'-'+sku+'-'+warehouse+'-'+amazonorder);
+//   ShowMessage(PO+'-'+sku+'-'+warehouse+'-'+amazonorder);
   needInsert := true;
   q := TFdQuery.Create(nil);
   try
@@ -1951,7 +1952,7 @@ begin
       SQL.Clear;
       SQL.Add('select po,line,sku,qty,price,qtyreceived,checked,amazonpo,whname from polines where Po =' + PO + ' and sku=' + QuotedStr(Sku)
         + ' and (whname=' + QuotedStr('') + ' or whname=' + QuotedStr(warehouse) + ')');
-      // ShowMessage(SQL.Text);
+//       ShowMessage(SQL.Text);
       Active := true;
       First;
       while not Eof do
@@ -1963,17 +1964,17 @@ begin
         ll := Fields[1].AsString;
         needInsert := false;
         RunSql('update polines set qty=' + qty + ',whname=' + QuotedStr(warehouse) + ',amazonpo=' + QuotedStr(amazonOrder) + ', labelprep='
-          + QuotedStr(labelprep) + ' where Po =' + PO + 'and sku=' + QuotedStr(Sku) + ' and line=' + ll);
+          + QuotedStr(labelprep) + ' where Po =' + PO + ' and sku=' + QuotedStr(Sku) + ' and line=' + ll);
         Next;
       end;
-      // ShowMessage(SQL.Text);
+//       ShowMessage(SQL.Text);
     end;
     if (needInsert) then
     begin
       if (Price = '') then
         Price := FloatToStrF(getMyCost(Sku), ffNumber, 6, 2);
-      maxPo := getMaxPoLine(StrToInt(PO)) + 1;
-      RunSql('insert into polines (po,line,sku,price,amazonpo,whname,qty,labelprep) values (' + PO + ',' + IntToStr(maxPo) + ',' +
+        maxPo := getMaxPoLine(StrToInt(PO)) + 1;
+        RunSql('insert into polines (po,line,sku,price,amazonpo,whname,qty,labelprep) values (' + PO + ',' + IntToStr(maxPo) + ',' +
         QuotedStr(Sku) + ',' + Price + ',' + QuotedStr(amazonOrder) + ',' + QuotedStr(warehouse) + ',' + qty + ',' +
         QuotedStr(labelprep) + ')');
     end;
