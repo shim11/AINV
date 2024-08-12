@@ -7,12 +7,17 @@ uses
   MyFunctions, Forms, Graphics,
   XMLDoc, IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,
   IdSMTP, frxExportImage, frxExportCSV, frxExportHTML, frxExportPDF,
-  Xml.Win.msxmldom, Xml.XMLIntf, Xml.xmldom, IdExplicitTLSClientServerBase, IdMessageClient, IdSMTPBase, frxClass,
-  frxDBSet, IdUDPServer, IdGlobal, IdSocketHandle, IdUDPBase, IdHTTP, FireDAC.UI.Intf, FireDAC.VCLUI.Wait,
+  Xml.Win.msxmldom, Xml.XMLIntf, Xml.xmldom, IdExplicitTLSClientServerBase,
+  IdMessageClient, IdSMTPBase, frxClass,
+  frxDBSet, IdUDPServer, IdGlobal, IdSocketHandle, IdUDPBase, IdHTTP,
+  FireDAC.UI.Intf, FireDAC.VCLUI.Wait,
   FireDAC.Stan.Intf, FireDAC.Stan.Option,
-  FireDAC.Stan.Error, FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
-  FireDAC.Phys.PG, FireDAC.Phys.PGDef, FireDAC.Comp.Client, FireDAC.Comp.UI, FireDAC.Moni.Base, FireDAC.Moni.FlatFile,
-  FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.DataSet, SqlTimSt, frxBarcode,
+  FireDAC.Stan.Error, FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool,
+  FireDAC.Stan.Async, FireDAC.Phys,
+  FireDAC.Phys.PG, FireDAC.Phys.PGDef, FireDAC.Comp.Client, FireDAC.Comp.UI,
+  FireDAC.Moni.Base, FireDAC.Moni.FlatFile,
+  FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt,
+  FireDAC.Comp.DataSet, SqlTimSt, frxBarcode,
   frxExportBaseDialog;
 
 type
@@ -285,14 +290,18 @@ type
     tbReconReportread: TIntegerField;
     dsReconReport: TDataSource;
     tbSelfInforeplyTo: TWideStringField;
+    OD: TOpenDialog;
     procedure DataModuleCreate(Sender: TObject);
     procedure tbPOLinesCalcFields(DataSet: TDataSet);
     procedure tbPoCalcFields(DataSet: TDataSet);
     procedure tbItemsmycostChange(Sender: TField);
     procedure tbItemsAfterPost(DataSet: TDataSet);
-    procedure frxDsTwoCompareProfitGetValue(const VarName: string; var Value: Variant);
-    procedure frxDsCompareProfitReportGetValue(const VarName: string; var Value: Variant);
-    procedure receiverUDPRead(AThread: TIdUDPListenerThread; const AData: TIdBytes; ABinding: TIdSocketHandle);
+    procedure frxDsTwoCompareProfitGetValue(const VarName: string;
+      var Value: Variant);
+    procedure frxDsCompareProfitReportGetValue(const VarName: string;
+      var Value: Variant);
+    procedure receiverUDPRead(AThread: TIdUDPListenerThread;
+      const AData: TIdBytes; ABinding: TIdSocketHandle);
     procedure DataModuleDestroy(Sender: TObject);
     procedure tbPOLinesAfterDelete(DataSet: TDataSet);
     procedure tbPOLinesBeforeDelete(DataSet: TDataSet);
@@ -304,7 +313,8 @@ type
     procedure tbPOLinesBeforePost(DataSet: TDataSet);
     procedure tbPOLinesMySkuChange(Sender: TField);
     procedure tbVendorsBeforeDelete(DataSet: TDataSet);
-    procedure tbReconReportdeletedGetText(Sender: TField; var Text: string; DisplayText: Boolean);
+    procedure tbReconReportdeletedGetText(Sender: TField; var Text: string;
+      DisplayText: Boolean);
 
   private
     { Private declarations }
@@ -312,14 +322,15 @@ type
     qtyWhChanged: Boolean;
     cpVendors: array of string;
     vendorActiveChanged: Boolean;
-    cpMonth1, cpMonth2, cpMonth3, cpMonth4, cpMonth5, cpMonth6, cpMonth7, cpMonth8, cpMonth9, cpMonth10, cpMonth11,
-      cpMonth12: array of Double;
+    cpMonth1, cpMonth2, cpMonth3, cpMonth4, cpMonth5, cpMonth6, cpMonth7,
+      cpMonth8, cpMonth9, cpMonth10, cpMonth11, cpMonth12: array of Double;
     procedure UpdateInventoryQty(PartNo: string; qty: Integer);
     function FindVendorByName(VendorName: string): string;
     procedure InsertInventory(Sku, FfSku, Asin, Title, Price, qty: string);
     procedure InsertInventoryOld(Sku, FfSku, Asin, fnSku, qty: string);
     procedure InsertOrders(OrderId, OrderDate, Sku, qty: string);
-    function CreatePurchaseOrderLines(PO: Integer; vendor: string; withCase: Boolean): Integer;
+    function CreatePurchaseOrderLines(PO: Integer; vendor: string;
+      withCase: Boolean): Integer;
     function OrderExists(OrderId, tableName: string): Boolean;
     function ProfitOrderExists(OrderId, Sku, tableName: string): Boolean;
     function getMaxPo(vendor: string; withCases: Boolean): Integer;
@@ -349,22 +360,28 @@ type
     function getffSku(Sku: string): string;
     function PoExists(PO: Integer): Boolean;
     function getMaxPoLine(poNum: Integer): Integer;
-    function fillCombo(tableS, field, conds: string; addAll: Boolean; addEmpty: Boolean = false): TStringList;
+    function fillCombo(tableS, field, conds: string; addAll: Boolean;
+      addEmpty: Boolean = false): TStringList;
     procedure UpdateMinQty10();
     function getMyCost(Sku: string): Double;
     function GetChecked(PO, line: string): Boolean;
     function getLastUpdateInvQty(vendor: string): TDateTime;
-    function getProfitVendorsCount(vendors: string; dateFromPar, DateToPar: TDateTime): Integer;
-    function getVendorsForProfitReport(vendors: string; cpVendors: TVendorArray; dateFromPar, DateToPar: TDateTime): TVendorArray;
+    function getProfitVendorsCount(vendors: string;
+      dateFromPar, DateToPar: TDateTime): Integer;
+    function getVendorsForProfitReport(vendors: string; cpVendors: TVendorArray;
+      dateFromPar, DateToPar: TDateTime): TVendorArray;
     function isUpdateVendors(vendor: string): Boolean;
-    procedure InsertOrUpdatePOLines(PO, Sku, warehouse, amazonOrder, qty, labelprep: string);
+    procedure InsertOrUpdatePOLines(PO, Sku, warehouse, amazonOrder, qty,
+      labelprep: string);
+    procedure CheckPoLinesDuplicates();
     procedure InsertWarehouse(warehouse, aname, line2, line3: string);
     function getSqlResult(SQLStr: string): string;
     function getAddToPoItems(): TStringList;
     function getAddedPo(): TStringList;
     function DeleteDuplicatePOLines(PO: string): Boolean;
     function getSkuQtyPoLine(poNum: Integer; Sku: String): Integer;
-    function BuildSearchFilter(SearchStr, tableName, strField, skuFld: string; ordernoFld: String = 'orderno'): string;
+    function BuildSearchFilter(SearchStr, tableName, strField, skuFld: string;
+      ordernoFld: String = 'orderno'): string;
     procedure insertUpdateItemsProfit();
   end;
 
@@ -415,7 +432,8 @@ begin
   result := fillCombo('po', 'po', ' where added=true', false);
 end;
 
-function TDM.fillCombo(tableS, field, conds: string; addAll: Boolean; addEmpty: Boolean = false): TStringList;
+function TDM.fillCombo(tableS, field, conds: string; addAll: Boolean;
+  addEmpty: Boolean = false): TStringList;
 var
   StrLst: TStringList;
   q: TFdQuery;
@@ -495,7 +513,8 @@ begin
       SQL.Add('select  sku, sum(profit) / sum(qty) as itemProfit,');
       SQL.Add('(((sum(profit) / sum(qty) ) / ((sum(ainvcost) / sum(qty))) / sum(qty)) * 100) as percentProfit');
       SQL.Add('from  profitreport');
-      SQL.Add('where ainvcost > 0 and principal > 0 and orderdate >' + QuotedStr(DateToStr(IncMonth(Now, -3))));
+      SQL.Add('where ainvcost > 0 and principal > 0 and orderdate >' +
+        QuotedStr(DateToStr(IncMonth(Now, -3))));
       SQL.Add('group by sku order by sku');
       Active := true;
       First;
@@ -504,8 +523,9 @@ begin
         Sku := Fields[0].AsString;
         itemProfit := Fields[1].AsString;
         percProfit := Fields[2].AsString;
-        RunSql('insert into items_profit (sku, profit_dol, profit_percent, last_update) values(' + QuotedStr(Sku) + ',' + itemProfit + ',' +
-          percProfit + ',' + QuotedStr(DateToStr(Now)) + ')');
+        RunSql('insert into items_profit (sku, profit_dol, profit_percent, last_update) values('
+          + QuotedStr(Sku) + ',' + itemProfit + ',' + percProfit + ',' +
+          QuotedStr(DateToStr(Now)) + ')');
         Next;
       end;
     end;
@@ -536,9 +556,12 @@ begin
     begin
       Sku := tbItems.FieldByName('sku').AsString;
       MyCost := tbItems.FieldByName('mycost').AsString;
-      RunSql('update profitreport set ainvCost=' + MyCost + ' where sku=' + QuotedStr(Sku));
-      RunSql('update profitreport set  profit=netto-(ainvcost*qty) where sku=' + QuotedStr(Sku));
-      RunSql('update ai_items set  mycost_changed=false where sku=' + QuotedStr(Sku));
+      RunSql('update profitreport set ainvCost=' + MyCost + ' where sku=' +
+        QuotedStr(Sku));
+      RunSql('update profitreport set  profit=netto-(ainvcost*qty) where sku=' +
+        QuotedStr(Sku));
+      RunSql('update ai_items set  mycost_changed=false where sku=' +
+        QuotedStr(Sku));
     end;
     // q := TFdQuery.Create(nil);
     // with q do
@@ -567,7 +590,8 @@ end;
 
 procedure TDM.tbItemsBeforePost(DataSet: TDataSet);
 begin
-  if (DataSet.FieldByName('qtywh').OldValue <> DataSet.FieldByName('qtywh').Value) then
+  if (DataSet.FieldByName('qtywh').OldValue <> DataSet.FieldByName('qtywh')
+    .Value) then
   begin
     qtyWhChanged := true;
   end;
@@ -590,7 +614,8 @@ begin
       Connection := AlonDb;
       Active := false;
       SQL.Clear;
-      SQL.Add('select fullname from vendors where vendorname=' + QuotedStr(tbPovendor.AsString));
+      SQL.Add('select fullname from vendors where vendorname=' +
+        QuotedStr(tbPovendor.AsString));
       Active := true;
       VendorName := Fields[0].AsString;
     end;
@@ -605,7 +630,8 @@ var
   PO: string;
 begin
   PO := DataSet.FieldByName('PO').AsString;
-  RunSql('update po set totalprice=' + FloatToStr(DM.getTotalPo(StrToInt(PO))) + ' where po=' + PO);
+  RunSql('update po set totalprice=' + FloatToStr(DM.getTotalPo(StrToInt(PO))) +
+    ' where po=' + PO);
   RefreshQuery(tbItems);
   RefreshQuery(tbPo);
 end;
@@ -617,7 +643,8 @@ begin
   line := DataSet.FieldByName('line').AsString;
   if (line = '') then
   begin
-    line := getSqlResult('select (max(line) + 1) from polines where po=' + DataSet.FieldByName('PO').AsString);
+    line := getSqlResult('select (max(line) + 1) from polines where po=' +
+      DataSet.FieldByName('PO').AsString);
     if (line = '') then
       line := '1';
     DataSet.FieldByName('line').Value := StrToInt(line);
@@ -652,7 +679,8 @@ begin
       Connection := AlonDb;
       Active := false;
       SQL.Clear;
-      SQL.Add('select qtyord, qtyord10, caseqty from ai_items where sku=' + QuotedStr(tbPOLinessku.AsString));
+      SQL.Add('select qtyord, qtyord10, caseqty from ai_items where sku=' +
+        QuotedStr(tbPOLinessku.AsString));
       Active := true;
       qty30 := Fields[0].AsInteger;
       qty10 := Fields[1].AsInteger;
@@ -678,7 +706,8 @@ begin
   end;
 end;
 
-procedure TDM.tbReconReportdeletedGetText(Sender: TField; var Text: string; DisplayText: Boolean);
+procedure TDM.tbReconReportdeletedGetText(Sender: TField; var Text: string;
+  DisplayText: Boolean);
 begin
   if (Sender.AsString = '1') then
     Text := 'Deleted'
@@ -691,18 +720,22 @@ var
   pass: String;
 begin
   pass := '';
-  InputQuery('Password needed', 'Please enter password for delete vendor', pass);
+  InputQuery('Password needed',
+    'Please enter password for delete vendor', pass);
   if (pass <> '0601') then
   begin
-    ShowMessage('Vendor ' + DataSet.FieldByName('vendorname').AsString + ' was not deleted');
-    addActivity(AlonDb, 'DM.tbVendorsBeforeDelete pass=' + pass + 'Vendor ' + DataSet.FieldByName('vendorname').AsString +
+    ShowMessage('Vendor ' + DataSet.FieldByName('vendorname').AsString +
       ' was not deleted');
+    addActivity(AlonDb, 'DM.tbVendorsBeforeDelete pass=' + pass + 'Vendor ' +
+      DataSet.FieldByName('vendorname').AsString + ' was not deleted');
     Abort;
   end
   else
   begin
-    ShowMessage('Vendor ' + DataSet.FieldByName('vendorname').AsString + ' was deleted');
-    addActivity(AlonDb, 'DM.tbVendorsBeforeDelete pass=' + pass + ' vendor ' + DataSet.FieldByName('vendorname').AsString + ' was deleted');
+    ShowMessage('Vendor ' + DataSet.FieldByName('vendorname').AsString +
+      ' was deleted');
+    addActivity(AlonDb, 'DM.tbVendorsBeforeDelete pass=' + pass + ' vendor ' +
+      DataSet.FieldByName('vendorname').AsString + ' was deleted');
   end;
 end;
 
@@ -723,14 +756,17 @@ begin
       isactive := 'true'
     else
       isactive := 'false';
-    RunSql('update ai_items set isvendoractive=' + QuotedStr(isactive) + ' where vendor=' +
-      QuotedStr(DataSet.FieldByName('vendorname').AsString));
+    RunSql('update ai_items set isvendoractive=' + QuotedStr(isactive) +
+      ' where vendor=' + QuotedStr(DataSet.FieldByName('vendorname').AsString));
     qAInv.Refresh;
-    fmInventory.cbVendors.Items := DM.fillCombo('vendors', 'vendorname', ' where isactive=true', true);
+    fmInventory.cbVendors.Items := DM.fillCombo('vendors', 'vendorname',
+      ' where isactive=true', true);
     fmInventory.cbVendors.ItemIndex := 0;
-    fmInventory.cbSetVendor.Items := DM.fillCombo('vendors', 'vendorname', ' where isactive=true', true);
+    fmInventory.cbSetVendor.Items := DM.fillCombo('vendors', 'vendorname',
+      ' where isactive=true', true);
     fmInventory.cbSetVendor.ItemIndex := 0;
-    fmInventory.cbPoReportVendors.Items := DM.fillCombo('vendors', 'vendorname', ' where isactive=true', true);
+    fmInventory.cbPoReportVendors.Items := DM.fillCombo('vendors', 'vendorname',
+      ' where isactive=true', true);
     fmInventory.cbPoReportVendors.ItemIndex := 0;
     fmInventory.cbVendorsSelect(nil);
   end;
@@ -830,8 +866,8 @@ begin
       Active := false;
       SQL.Clear;
       SQL.Add('insert into ai_items (Sku,FfSku,Asin,fnsku,QtyInv,isactive,caseqty)');
-      SQL.Add('values(' + QuotedStr(Sku) + ',' + QuotedStr(FfSku) + ',' + QuotedStr(Asin) + ',' + QuotedStr(fnSku) + ',' + qty +
-        ', true,1)');
+      SQL.Add('values(' + QuotedStr(Sku) + ',' + QuotedStr(FfSku) + ',' +
+        QuotedStr(Asin) + ',' + QuotedStr(fnSku) + ',' + qty + ', true,1)');
       // ShowMessage(SQL.Text);
       ExecSQL;
     end;
@@ -851,8 +887,9 @@ begin
       Connection := AlonDb;
       Active := false;
       SQL.Clear;
-      SQL.Add('select vendorname from vendors where UPPER(fullname) like ' + QuotedStr(UpperCase(VendorName) + '%') +
-        ' or UPPER(vendorname) like ' + QuotedStr(UpperCase(VendorName) + '%'));
+      SQL.Add('select vendorname from vendors where UPPER(fullname) like ' +
+        QuotedStr(UpperCase(VendorName) + '%') + ' or UPPER(vendorname) like ' +
+        QuotedStr(UpperCase(VendorName) + '%'));
       // ShowMessage(SQL.Text);
       Active := true;
       First;
@@ -901,7 +938,8 @@ begin
       Connection := AlonDb;
       Active := false;
       SQL.Clear;
-      SQL.Add('select orderid from ' + tableName + ' where orderid=' + QuotedStr(OrderId) + ' and SKU=' + QuotedStr(Sku));
+      SQL.Add('select orderid from ' + tableName + ' where orderid=' +
+        QuotedStr(OrderId) + ' and SKU=' + QuotedStr(Sku));
       Active := true;
       Str := Trim(Fields[0].AsString);
       if (Str = '') then
@@ -915,7 +953,8 @@ begin
   end;
 end;
 
-procedure TDM.receiverUDPRead(AThread: TIdUDPListenerThread; const AData: TIdBytes; ABinding: TIdSocketHandle);
+procedure TDM.receiverUDPRead(AThread: TIdUDPListenerThread;
+  const AData: TIdBytes; ABinding: TIdSocketHandle);
 var
   Str: string;
 begin
@@ -954,7 +993,8 @@ begin
       Connection := AlonDb;
       Active := false;
       SQL.Clear;
-      SQL.Add('select orderid from ' + tableName + ' where orderid=' + QuotedStr(OrderId));
+      SQL.Add('select orderid from ' + tableName + ' where orderid=' +
+        QuotedStr(OrderId));
       Active := true;
       Str := Trim(Fields[0].AsString);
       if (Str = '') then
@@ -1002,7 +1042,8 @@ begin
       Active := false;
       SQL.Clear;
       SQL.Add('insert into ai_orders (OrderId,OrderDate,Sku,Qty)');
-      SQL.Add('values(' + QuotedStr(OrderId) + ',' + QuotedStr(OrderDate) + ',' + QuotedStr(Sku) + ',' + qty + ')');
+      SQL.Add('values(' + QuotedStr(OrderId) + ',' + QuotedStr(OrderDate) + ','
+        + QuotedStr(Sku) + ',' + qty + ')');
       // ShowMessage(SQL.Text);
       ExecSQL;
     end;
@@ -1024,9 +1065,11 @@ begin
       Active := false;
       SQL.Clear;
       if (withCases) then
-        SQL.Add('select max(po) from po where vendor=' + QuotedStr(vendor) + ' and sentdate is null and withCases=true')
+        SQL.Add('select max(po) from po where vendor=' + QuotedStr(vendor) +
+          ' and sentdate is null and withCases=true')
       else
-        SQL.Add('select max(po) from po where vendor=' + QuotedStr(vendor) + ' and sentdate is null and withCases=false');
+        SQL.Add('select max(po) from po where vendor=' + QuotedStr(vendor) +
+          ' and sentdate is null and withCases=false');
       Active := true;
       res := Fields[0].AsInteger;
       if (res = 0) then
@@ -1081,7 +1124,8 @@ begin
       Connection := AlonDb;
       Active := false;
       SQL.Clear;
-      SQL.Add('select checked from polines where po=' + PO + ' and line=' + line);
+      SQL.Add('select checked from polines where po=' + PO +
+        ' and line=' + line);
       Active := true;
       res := Fields[0].AsBoolean;
       result := res;
@@ -1147,7 +1191,8 @@ begin
       Connection := AlonDb;
       Active := false;
       SQL.Clear;
-      SQL.Add('select qty from polines where po=' + IntToStr(poNum) + ' and sku = ' + QuotedStr(Sku));
+      SQL.Add('select qty from polines where po=' + IntToStr(poNum) +
+        ' and sku = ' + QuotedStr(Sku));
       Active := true;
       res := Fields[0].AsInteger;
       result := res;
@@ -1179,7 +1224,8 @@ begin
   end;
 end;
 
-function TDM.getProfitVendorsCount(vendors: string; dateFromPar, DateToPar: TDateTime): Integer;
+function TDM.getProfitVendorsCount(vendors: string;
+  dateFromPar, DateToPar: TDateTime): Integer;
 var
   q: TFdQuery;
   count: Integer;
@@ -1196,7 +1242,8 @@ begin
       SQL.Add(' where (orderdate between :DateFrom and :DateTo)');
       if ((Trim(vendors) > '')) then
       begin
-        SQL.Add(' and upper(vendor) in (''' + ReplaceStr(UpperCase(vendors), ',', ''',''') + ''')');
+        SQL.Add(' and upper(vendor) in (''' + ReplaceStr(UpperCase(vendors),
+          ',', ''',''') + ''')');
       end
       else
         SQL.Add(' and vendor is not null');
@@ -1218,7 +1265,8 @@ begin
   end;
 end;
 
-function TDM.getVendorsForProfitReport(vendors: string; cpVendors: TVendorArray; dateFromPar, DateToPar: TDateTime): TVendorArray;
+function TDM.getVendorsForProfitReport(vendors: string; cpVendors: TVendorArray;
+  dateFromPar, DateToPar: TDateTime): TVendorArray;
 var
   q: TFdQuery;
   count: Integer;
@@ -1235,7 +1283,8 @@ begin
       SQL.Add(' where (orderdate between :DateFrom and :DateTo)');
       if ((Trim(vendors) > '')) then
       begin
-        SQL.Add('and upper(vendor) in (''' + ReplaceStr(UpperCase(vendors), ',', ''',''') + ''')');
+        SQL.Add('and upper(vendor) in (''' + ReplaceStr(UpperCase(vendors), ',',
+          ''',''') + ''')');
       end
       else
         SQL.Add(' and vendor is not null');
@@ -1265,7 +1314,8 @@ begin
   result := (UpperCase(vendor) = 'TMC') or (UpperCase(vendor) = 'BNF');
 end;
 
-function TDM.CreatePurchaseOrderLines(PO: Integer; vendor: string; withCase: Boolean): Integer;
+function TDM.CreatePurchaseOrderLines(PO: Integer; vendor: string;
+  withCase: Boolean): Integer;
 var
   q: TFdQuery;
   Sku, Price: string;
@@ -1312,9 +1362,12 @@ begin
             qty := (vendQty div caseQty) * caseQty;
           if (Trim(Price) = '') then
             Price := '0.0';
-          RunSql('insert into polines (po,line,sku,qty,price) values(' + IntToStr(PO) + ', ' + IntToStr(lineNo) + ', ' + QuotedStr(Sku) +
+          RunSql('insert into polines (po,line,sku,qty,price) values(' +
+            IntToStr(PO) + ', ' + IntToStr(lineNo) + ', ' + QuotedStr(Sku) +
             ', ' + IntToStr(qty) + ', ' + Price + ')');
-          RunSql('update ai_items set lastorderdate=' + QuotedStr(DateTimeToStr(Now)) + ', qtyreceived=0' + ' where sku=' + QuotedStr(Sku));
+          RunSql('update ai_items set lastorderdate=' +
+            QuotedStr(DateTimeToStr(Now)) + ', qtyreceived=0' + ' where sku=' +
+            QuotedStr(Sku));
         end;
         Next;
       end;
@@ -1333,9 +1386,11 @@ var
   curPO, poCount, i: Integer;
 begin
   retVal := 'Created PO#:';
-  poCount := retIntFieldValue(AlonDb, 'select count(*) from polines where po=' + PO);
+  poCount := retIntFieldValue(AlonDb,
+    'select count(*) from polines where po=' + PO);
   curPO := retIntFieldValue(AlonDb, 'select max(po) from po') + 1;
-  bulkOrders := retStrFieldValue(AlonDb, 'select bulkorders from po where po=' + PO);
+  bulkOrders := retStrFieldValue(AlonDb,
+    'select bulkorders from po where po=' + PO);
   if (bulkOrders > '') then
   begin
     vend := 'BULK';
@@ -1352,9 +1407,12 @@ begin
     for i := 1 to poCount do
     begin
       retVal := retVal + #10#13 + IntToStr(curPO);
-      RunSql('insert into po (po,vendor, orderdate, totalprice, bulkpo, bulkorders) values (' + IntToStr(curPO) + ',' + QuotedStr(vend) +
-        ',' + QuotedStr(DateTimeToStr(Now)) + ',0,' + QuotedStr(isBulk) + ',' + QuotedStr(bulkOrders) + ')');
-      RunSql('update polines set po = ' + IntToStr(curPO) + ' where po=' + PO + ' and line between ' + IntToStr(i * 199) + ' and ' +
+      RunSql('insert into po (po,vendor, orderdate, totalprice, bulkpo, bulkorders) values ('
+        + IntToStr(curPO) + ',' + QuotedStr(vend) + ',' +
+        QuotedStr(DateTimeToStr(Now)) + ',0,' + QuotedStr(isBulk) + ',' +
+        QuotedStr(bulkOrders) + ')');
+      RunSql('update polines set po = ' + IntToStr(curPO) + ' where po=' + PO +
+        ' and line between ' + IntToStr(i * 199) + ' and ' +
         IntToStr((i + 1) * 199));
       RenumberPurchaseOrderLines(IntToStr(curPO));
       Inc(curPO);
@@ -1379,7 +1437,8 @@ begin
       Active := false;
       SQL.Clear;
       if ((Trim(vendor) > '') and (UpperCase(Trim(vendor)) <> 'ALL')) then
-        RunSql('update ai_items set addtopo=true where upper(vendor) like ' + QuotedStr(UpperCase(vendor) + '%') +
+        RunSql('update ai_items set addtopo=true where upper(vendor) like ' +
+          QuotedStr(UpperCase(vendor) + '%') +
           ' and mycost>0 and qtyord>0 and LastOrderDate is null and isactive=true')
       else
         RunSql('update ai_items set addtopo=true where vendor>'''' and mycost>0 and qtyord>0 and lastorderdate is null and isactive=true');
@@ -1449,9 +1508,10 @@ var
 begin
   if (PO = '') then
     exit;
-  RunSql('UPDATE polines p SET rownum = t.RN, line = line + 10000 from (SELECT po,sku,amazonpo, Row_number()' +
-    'OVER (ORDER BY po,sku, amazonpo) AS RN FROM polines where po=' + PO + ') as t where p.PO=' + PO +
-    ' and p.po=t.po and p.sku=t.sku and p.amazonpo=t.amazonpo');
+  RunSql('UPDATE polines p SET rownum = t.RN, line = line + 10000 from (SELECT po,sku,amazonpo,whname, Row_number()'
+    + 'OVER (ORDER BY po,sku, amazonpo,whname) AS RN FROM polines where po=' +
+    PO + ') as t where p.PO=' + PO +
+    ' and p.po=t.po and p.sku=t.sku and p.amazonpo=t.amazonpo and p.whname=t.whname');
   // ' and p.po=t.po and p.sku=t.sku');
   //
   RunSql('update polines set line = rownum where po=' + PO);
@@ -1475,7 +1535,8 @@ begin
       while not Eof do
       begin
         Sku := Fields[0].AsString;
-        RunSql('update ai_items set LastOrderDate=null where SKU=' + QuotedStr(Sku));
+        RunSql('update ai_items set LastOrderDate=null where SKU=' +
+          QuotedStr(Sku));
         Next;
       end;
       // ShowMessage(SQL.Text);
@@ -1496,7 +1557,8 @@ begin
       Connection := AlonDb;
       Active := false;
       SQL.Clear;
-      SQL.Add('select fullname from vendors where vendorname=' + QuotedStr(vendor));
+      SQL.Add('select fullname from vendors where vendorname=' +
+        QuotedStr(vendor));
       Active := true;
       result := Fields[0].AsString;
     end;
@@ -1641,14 +1703,16 @@ begin
       Connection := AlonDb;
       Active := false;
       SQL.Clear;
-      SQL.Add('select sku, ' + qtyR + ' from polines where po=' + PO + ' and ' + qtyR + '> 0');
+      SQL.Add('select sku, ' + qtyR + ' from polines where po=' + PO + ' and ' +
+        qtyR + '> 0');
       Active := true;
       First;
       while not Eof do
       begin
         Sku := Fields[0].AsString;
         qty := Fields[1].AsString;
-        qStr := 'update ai_items set qtyreceived=' + qty + ', lastorderdate=null where sku=' + QuotedStr(Sku);
+        qStr := 'update ai_items set qtyreceived=' + qty +
+          ', lastorderdate=null where sku=' + QuotedStr(Sku);
         RunSql(qStr);
         Next;
       end;
@@ -1689,18 +1753,21 @@ begin
       Connection := AlonDb;
       Active := false;
       SQL.Clear;
-      SQL.Add('select sku, qty from polines where po in (' + poBulk + ') and qty > 0');
+      SQL.Add('select sku, qty from polines where po in (' + poBulk +
+        ') and qty > 0');
       Active := true;
       First;
       while not Eof do
       begin
         Sku := Fields[0].AsString;
         qty := Fields[1].AsString;
-        qStr := qStr + 'update ai_items set qtyreceived=' + qty + ', lastorderdate=null where sku=' + QuotedStr(Sku) + ';' + #13;
+        qStr := qStr + 'update ai_items set qtyreceived=' + qty +
+          ', lastorderdate=null where sku=' + QuotedStr(Sku) + ';' + #13;
         Next;
       end;
     end;
-    qStr := qStr + 'update po set receiveddate=' + QuotedStr(DateTimeToStr(Now)) + ' where po in (' + poBulk + ');' + #13;
+    qStr := qStr + 'update po set receiveddate=' + QuotedStr(DateTimeToStr(Now))
+      + ' where po in (' + poBulk + ');' + #13;
     poList.Clear;
     poList.Add(qStr);
     fileName := 'c:\Temp\' + DateToFileName(Now, true);
@@ -1725,7 +1792,8 @@ begin
       Connection := AlonDb;
       Active := false;
       SQL.Clear;
-      SQL.Add('select po from polines where sku=' + QuotedStr(Sku) + ' order by po desc');
+      SQL.Add('select po from polines where sku=' + QuotedStr(Sku) +
+        ' order by po desc');
       // ShowMessage(SQL.Text);
       Active := true;
       First;
@@ -1750,7 +1818,8 @@ begin
       Connection := AlonDb;
       Active := false;
       SQL.Clear;
-      SQL.Add('select sku, sum(qty) from ai_orders where orderDate>' + QuotedStr(date1) + ' group by sku');
+      SQL.Add('select sku, sum(qty) from ai_orders where orderDate>' +
+        QuotedStr(date1) + ' group by sku');
       // ShowMessage(SQL.Text);
       Active := true;
       First;
@@ -1758,7 +1827,8 @@ begin
       begin
         Sku := Fields[0].AsString;
         qty := Fields[1].AsString;
-        RunSql('update ai_items set qtyMin=' + qty + ' where sku=' + QuotedStr(Sku));
+        RunSql('update ai_items set qtyMin=' + qty + ' where sku=' +
+          QuotedStr(Sku));
         Next;
       end;
     end;
@@ -1784,7 +1854,8 @@ begin
       Connection := AlonDb;
       Active := false;
       SQL.Clear;
-      SQL.Add('select sku, sum(qty) from ai_orders where orderDate>' + QuotedStr(date1) + ' group by sku');
+      SQL.Add('select sku, sum(qty) from ai_orders where orderDate>' +
+        QuotedStr(date1) + ' group by sku');
       // ShowMessage(SQL.Text);
       Active := true;
       First;
@@ -1793,7 +1864,8 @@ begin
         Sku := Fields[0].AsString;
         qtyI := Fields[1].AsInteger;
         qty := IntToStr(qtyI);
-        RunSql('update ai_items set qtyMin10=' + qty + ', qtyOrd10=' + IntToStr(qtyI * 3) + ' where sku=' + QuotedStr(Sku));
+        RunSql('update ai_items set qtyMin10=' + qty + ', qtyOrd10=' +
+          IntToStr(qtyI * 3) + ' where sku=' + QuotedStr(Sku));
         Next;
       end;
     end;
@@ -1811,23 +1883,34 @@ var
   poList: TStringList;
 begin
   poList := TStringList.Create;
-  count := retIntFieldValue(AlonDb, 'select count(*) from ai_items where caseqty > 0 and qtyord > 0 and ' + '(qtyord % caseqty) > 0 ');
+  count := retIntFieldValue(AlonDb,
+    'select count(*) from ai_items where caseqty > 0 and qtyord > 0 and ' +
+    '(qtyord % caseqty) > 0 ');
   if (count > 0) or (updateAnyway) then
     try
       begin
-        qStr := qStr + 'update ai_items set qtyOrd=qtymin-(qtyinv + qtywh), qtyOrd10=(qtymin10 * 3)-(qtyinv + qtywh) ' +
-          'where qtymin >= (qtyinv + qtywh);' + #13;
-        qStr := qStr + 'update ai_items set qtyOrd=0 where qtymin <= (qtyinv + qtywh);' + #13;
-        qStr := qStr + 'update ai_items set qtyOrd10=0 where qtymin10 <= (qtyinv + qtywh);' + #13;
-        qStr := qStr + 'update ai_items set qtyOrd = (((qtyOrd / caseQty) * caseQty) + caseQty) where caseqty > 0 ' +
-          'and qtyord > 0 and (qtyord % caseqty) > 0;' + #13;
-        qStr := qStr + 'update ai_items set qtyOrd10 = (((qtyOrd10 / caseQty) * caseQty) + caseQty) ' +
-          'where caseqty > 0 and qtyord10 > 0 and (qtyord10 % caseqty) > 0;' + #13;
+        qStr := qStr +
+          'update ai_items set qtyOrd=qtymin-(qtyinv + qtywh), qtyOrd10=(qtymin10 * 3)-(qtyinv + qtywh) '
+          + 'where qtymin >= (qtyinv + qtywh);' + #13;
+        qStr := qStr +
+          'update ai_items set qtyOrd=0 where qtymin <= (qtyinv + qtywh);' +
+          #13;
+        qStr := qStr +
+          'update ai_items set qtyOrd10=0 where qtymin10 <= (qtyinv + qtywh);' +
+          #13;
+        qStr := qStr +
+          'update ai_items set qtyOrd = (((qtyOrd / caseQty) * caseQty) + caseQty) where caseqty > 0 '
+          + 'and qtyord > 0 and (qtyord % caseqty) > 0;' + #13;
+        qStr := qStr +
+          'update ai_items set qtyOrd10 = (((qtyOrd10 / caseQty) * caseQty) + caseQty) '
+          + 'where caseqty > 0 and qtyord10 > 0 and (qtyord10 % caseqty) > 0;' +
+          #13;
         poList.Clear;
         poList.Add(qStr);
         fileName := 'c:\Temp\UpdateCaseQty.sql';
         poList.SaveToFile(fileName);
-        RunExternalSql('', DM.AlonDb.Name, 'c:\Temp\UpdateCaseQty.bat', fileName);
+        RunExternalSql('', DM.AlonDb.Name, 'c:\Temp\UpdateCaseQty.bat',
+          fileName);
       end;
     finally
       poList.Free;
@@ -1862,7 +1945,8 @@ begin
       Connection := AlonDb;
       Active := false;
       SQL.Clear;
-      SQL.Add('select max(vendorQtyUpdate) from ai_items where vendor=' + QuotedStr(vendor) + ' and vendorQty>0');
+      SQL.Add('select max(vendorQtyUpdate) from ai_items where vendor=' +
+        QuotedStr(vendor) + ' and vendorQty>0');
       Active := true;
       res := Fields[0].AsDateTime;
       result := res;
@@ -1917,7 +2001,8 @@ begin
         wh := Fields[3].AsString;
         if (isLineExists(tmpLst, Sku, aOrder, wh)) then
         begin
-          SQLStr := 'delete from polines where Po =' + PO + ' and sku=' + QuotedStr(Sku) + ' and line=' + ll;
+          SQLStr := 'delete from polines where Po =' + PO + ' and sku=' +
+            QuotedStr(Sku) + ' and line=' + ll;
           RunSql(SQLStr);
           result := true;
         end
@@ -1934,14 +2019,15 @@ begin
 
 end;
 
-procedure TDM.InsertOrUpdatePOLines(PO, Sku, warehouse, amazonOrder, qty, labelprep: string);
+procedure TDM.InsertOrUpdatePOLines(PO, Sku, warehouse, amazonOrder, qty,
+  labelprep: string);
 var
   q: TFdQuery;
   wh, aOrder, aqty, Price, ll: string;
   needInsert: Boolean;
   maxPo: Integer;
 begin
-//   ShowMessage(PO+'-'+sku+'-'+warehouse+'-'+amazonorder);
+  // ShowMessage(PO+'-'+sku+'-'+warehouse+'-'+amazonorder);
   needInsert := true;
   q := TFdQuery.Create(nil);
   try
@@ -1950,9 +2036,10 @@ begin
       Connection := AlonDb;
       Active := false;
       SQL.Clear;
-      SQL.Add('select po,line,sku,qty,price,qtyreceived,checked,amazonpo,whname from polines where Po =' + PO + ' and sku=' + QuotedStr(Sku)
-        + ' and (whname=' + QuotedStr('') + ' or whname=' + QuotedStr(warehouse) + ')');
-//       ShowMessage(SQL.Text);
+      SQL.Add('select po,line,sku,qty,price,qtyreceived,checked,amazonpo,whname from polines where Po ='
+        + PO + ' and sku=' + QuotedStr(Sku) + ' and (whname=' + QuotedStr('') +
+        ' or whname=' + QuotedStr(warehouse) + ')');
+      // ShowMessage(SQL.Text);
       Active := true;
       First;
       while not Eof do
@@ -1963,20 +2050,55 @@ begin
         wh := Fields[8].AsString;
         ll := Fields[1].AsString;
         needInsert := false;
-        RunSql('update polines set qty=' + qty + ',whname=' + QuotedStr(warehouse) + ',amazonpo=' + QuotedStr(amazonOrder) + ', labelprep='
-          + QuotedStr(labelprep) + ' where Po =' + PO + ' and sku=' + QuotedStr(Sku) + ' and line=' + ll);
+        RunSql('update polines set qty=' + qty + ',whname=' +
+          QuotedStr(warehouse) + ',amazonpo=' + QuotedStr(amazonOrder) +
+          ', labelprep=' + QuotedStr(labelprep) + ' where Po =' + PO +
+          ' and sku=' + QuotedStr(Sku) + ' and line=' + ll);
         Next;
       end;
-//       ShowMessage(SQL.Text);
+      // ShowMessage(SQL.Text);
     end;
     if (needInsert) then
     begin
       if (Price = '') then
         Price := FloatToStrF(getMyCost(Sku), ffNumber, 6, 2);
-        maxPo := getMaxPoLine(StrToInt(PO)) + 1;
-        RunSql('insert into polines (po,line,sku,price,amazonpo,whname,qty,labelprep) values (' + PO + ',' + IntToStr(maxPo) + ',' +
-        QuotedStr(Sku) + ',' + Price + ',' + QuotedStr(amazonOrder) + ',' + QuotedStr(warehouse) + ',' + qty + ',' +
-        QuotedStr(labelprep) + ')');
+      maxPo := getMaxPoLine(StrToInt(PO)) + 1;
+      RunSql('insert into polines (po,line,sku,price,amazonpo,whname,qty,labelprep) values ('
+        + PO + ',' + IntToStr(maxPo) + ',' + QuotedStr(Sku) + ',' + Price + ','
+        + QuotedStr(amazonOrder) + ',' + QuotedStr(warehouse) + ',' + qty + ','
+        + QuotedStr(labelprep) + ')');
+    end;
+  finally
+    q.Free;
+  end;
+end;
+
+procedure TDM.CheckPoLinesDuplicates();
+var
+  q: TFdQuery;
+  res : String;
+begin
+  q := TFdQuery.Create(nil);
+  try
+    with q do
+    begin
+      Connection := AlonDb;
+      Active := false;
+      SQL.Clear;
+      SQL.Add('SELECT po,amazonpo,sku, count(*) FROM POLINES where amazonpo > '' and '+
+          'whname > '' and po>5000 group by po,amazonpo,sku having count(*) > 1 order by po desc');
+      // ShowMessage(SQL.Text);
+      Active := true;
+      First;
+      while not Eof do
+      begin
+        res := res + Fields[0].AsString+' ' + Fields[1].AsString +' '+ Fields[2].AsString +' '+ Fields[3].AsString+'<br>';
+        Next;
+      end;
+    end;
+    if (res <> '') then
+    begin
+        sendLogMail('Found duplicates in PO lines',res);
     end;
   finally
     q.Free;
@@ -2001,15 +2123,17 @@ begin
       First;
       if (Fields[0].AsString = warehouse) then
         exit;
-      RunSql('insert into warehouses (whname, line1,line2,line3) values (' + QuotedStr(warehouse) + ',' + QuotedStr(aname) + ',' +
-        QuotedStr(line2) + ',' + QuotedStr(line3) + ')');
+      RunSql('insert into warehouses (whname, line1,line2,line3) values (' +
+        QuotedStr(warehouse) + ',' + QuotedStr(aname) + ',' + QuotedStr(line2) +
+        ',' + QuotedStr(line3) + ')');
     end;
   finally
     q.Free;
   end;
 end;
 
-procedure TDM.frxDsCompareProfitReportGetValue(const VarName: string; var Value: Variant);
+procedure TDM.frxDsCompareProfitReportGetValue(const VarName: string;
+  var Value: Variant);
 var
   lsFieldName: string;
 begin
@@ -2048,7 +2172,8 @@ begin
   end;
 end;
 
-procedure TDM.frxDsTwoCompareProfitGetValue(const VarName: string; var Value: Variant);
+procedure TDM.frxDsTwoCompareProfitGetValue(const VarName: string;
+  var Value: Variant);
 var
   lsFieldName: string;
 begin
@@ -2066,7 +2191,8 @@ begin
   end;
 end;
 
-function TDM.BuildSearchFilter(SearchStr, tableName, strField, skuFld: string; ordernoFld: String = 'orderno'): string;
+function TDM.BuildSearchFilter(SearchStr, tableName, strField, skuFld: string;
+  ordernoFld: String = 'orderno'): string;
 var
   q: TFdQuery;
   order, StrRes, SQLStr: string;
@@ -2081,12 +2207,15 @@ begin
       Active := false;
       SQL.Clear;
       SearchStr := UpperCase(('%' + SearchStr + '%'));
-      SQLStr := 'select distinct ' + ordernoFld + ' from ' + tableName + ' where cast(' + ordernoFld + ' as char(8)) like :PAR';
+      SQLStr := 'select distinct ' + ordernoFld + ' from ' + tableName +
+        ' where cast(' + ordernoFld + ' as char(8)) like :PAR';
       // + SearchStr;
       if (skuFld > '') then
-        SQLStr := SQLStr + ' or Upper(' + skuFld + ') like :PAR'; // (SearchStr);
+        SQLStr := SQLStr + ' or Upper(' + skuFld + ') like :PAR';
+      // (SearchStr);
       if (strField > '') then
-        SQLStr := SQLStr + ' or Upper(' + strField + ') like  :PAR'; // (SearchStr);
+        SQLStr := SQLStr + ' or Upper(' + strField + ') like  :PAR';
+      // (SearchStr);
 
       SQLStr := SQLStr + ' order by ' + ordernoFld;
       SQL.Add(SQLStr);

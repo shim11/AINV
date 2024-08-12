@@ -380,6 +380,7 @@ begin
         fmEditVendor.ShowModal;
       end;
       qPOLines.Free;
+      DM.CheckPoLinesDuplicates;
     end;
 end;
 

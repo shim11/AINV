@@ -1,0 +1,16 @@
+*.~*
+*.dcu
+*.pdf
+*.txt
+*.txt.wh
+*.txt.answer
+*.txt.error
+*.html
+*.xls
+*.log
+*.sqlold
+/alon/
+/PO/
+/shim/
+/SQL/
+/_*/

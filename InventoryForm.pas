@@ -284,6 +284,7 @@ type
     SMTP: TIdSMTP;
     edReplyTo: TDBEdit;
     Label71: TLabel;
+    btnFixPoLines: TButton;
     procedure dbgMainDrawColumnCell(Sender: TObject; const Rect: TRect;
       DataCol: Integer; Column: TColumn; State: TGridDrawState);
     procedure btnCreatePOClick(Sender: TObject);
@@ -370,6 +371,7 @@ type
     procedure btnProcessAllClick(Sender: TObject);
     procedure btnTestEmailClick(Sender: TObject);
     procedure BitBtn1Click(Sender: TObject);
+    procedure btnFixPoLinesClick(Sender: TObject);
   private
     // ascDesc: string;
   public
@@ -1536,12 +1538,13 @@ end;
 
 procedure TfmInventory.runJavaModule(Action: string; reportName: string = '');
 begin
-//ExecAndWait
-//    ('java -jar AmazonAinv.jar com.ainv.projects.Starter runModule=GetReportsForAinv dir=c:\Amazon\production\reports\\ logdir='
-//    + ExtractFilePath(ParamStr(0)) + '\\ action=' + Action + ' addfile=' + reportName);
-ExeAndWait
+  // ExecAndWait
+  // ('java -jar AmazonAinv.jar com.ainv.projects.Starter runModule=GetReportsForAinv dir=c:\Amazon\production\reports\\ logdir='
+  // + ExtractFilePath(ParamStr(0)) + '\\ action=' + Action + ' addfile=' + reportName);
+  ExeAndWait
     ('java -jar AmazonAinv.jar com.ainv.projects.Starter runModule=GetReportsForAinv dir=c:\Amazon\production\reports\\ logdir='
-    + ExtractFilePath(ParamStr(0)) + '\\ action=' + Action + ' addfile=' + reportName);
+    + ExtractFilePath(ParamStr(0)) + '\\ action=' + Action + ' addfile=' +
+    reportName);
 end;
 
 procedure TfmInventory.Searchaddress1Click(Sender: TObject);
@@ -3293,6 +3296,35 @@ begin
   end;
 end;
 
+procedure TfmInventory.btnFixPoLinesClick(Sender: TObject);
+var
+  TmpLst: TStringList;
+  Sku, warehouse, amazonOrder, qty, labelprep, errItems,po: string;
+  i: Integer;
+  Delim: Char;
+begin
+  DM.CheckPoLinesDuplicates;
+  Delim := #9;
+  with OD do
+    if Execute then
+    begin
+      TmpLst := TStringList.Create;
+      TmpLst.LoadFromFile(FileName);
+      po := extractOnlyNumbers(FileName);
+      for i := 0 to TmpLst.Count - 1 do
+      begin
+        // PO, sku, warehouse, amazonOrder, qty
+        amazonOrder := Trim(ExtractDelimited(1, TmpLst[i], [Delim]));
+        warehouse := Trim(ExtractDelimited(2, TmpLst[i], [Delim]));
+        Sku := Trim(ExtractDelimited(3, TmpLst[i], [Delim]));
+        qty := Trim(ExtractDelimited(4, TmpLst[i], [Delim]));
+        labelprep := Trim(ExtractDelimited(5, TmpLst[i], [Delim]));
+        DM.InsertOrUpdatePOLines(po, Sku, warehouse, amazonOrder, qty, labelprep)
+      end;
+    end;
+
+end;
+
 procedure TfmInventory.btnUpdateItemsSoldMonthlyClick(Sender: TObject);
 var
   Month, Year: Integer;
@@ -3845,11 +3877,11 @@ begin
     begin
       SMTP.Connect;
       PostMessage := TIdMessage.Create(nil);
-    PostMessage.Organization := DM.tbSelfInfocompany.AsString;
-    PostMessage.From.Name := DM.tbSelfInfomyname.Value;
-    PostMessage.From.Address := DM.tbSelfInfoemail.Value;
-    PostMessage.ReplyTo.EMailAddresses := DM.tbSelfInfoemail.Value;
-    PostMessage.Recipients.EMailAddresses := 'frederic@barefootdreams.com';
+      PostMessage.Organization := DM.tbSelfInfocompany.AsString;
+      PostMessage.From.Name := DM.tbSelfInfomyname.Value;
+      PostMessage.From.Address := DM.tbSelfInfoemail.Value;
+      PostMessage.ReplyTo.EMailAddresses := DM.tbSelfInfoemail.Value;
+      PostMessage.Recipients.EMailAddresses := 'frederic@barefootdreams.com';
       SMTP.Verify('frederic@barefootdreams.com');
       ShowMessage('Connect successfull');
     end;

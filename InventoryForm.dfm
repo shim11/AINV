@@ -1770,7 +1770,7 @@ object fmInventory: TfmInventory
         Left = 8
         Top = 136
         Width = 513
-        Height = 361
+        Height = 401
         BevelInner = bvSpace
         BevelKind = bkSoft
         TabOrder = 6
@@ -1981,7 +1981,7 @@ object fmInventory: TfmInventory
         Left = 527
         Top = 325
         Width = 663
-        Height = 172
+        Height = 212
         BevelInner = bvRaised
         BevelKind = bkSoft
         TabOrder = 7
@@ -2136,6 +2136,15 @@ object fmInventory: TfmInventory
           Caption = 'Test email'
           TabOrder = 14
           OnClick = btnTestEmailClick
+        end
+        object btnFixPoLines: TButton
+          Left = 216
+          Top = 154
+          Width = 97
+          Height = 25
+          Caption = 'Fix PO lines '
+          TabOrder = 15
+          OnClick = btnFixPoLinesClick
         end
       end
       object Panel7: TPanel
@@ -3121,7 +3130,7 @@ object fmInventory: TfmInventory
       end
     end
     object Ver1291: TMenuItem
-      Caption = 'Ver. 6.15'
+      Caption = 'Ver. 6.16'
       Checked = True
       Enabled = False
     end

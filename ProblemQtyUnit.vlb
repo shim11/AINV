@@ -1,0 +1,17 @@
+﻿[dbgShipId]
+Coordinates=10,78,107,58
+Visible=True
+ExplicitSubNodes=Columns.Capacity
+
+[Panel2]
+Coordinates=75,10,55,58
+
+[Panel1]
+Coordinates=10,10,55,58
+
+[Panel3]
+Coordinates=140,10,55,58
+
+[]
+Coordinates=148,56,91,36
+

@@ -5282,4 +5282,8 @@ object DM: TDM
     Left = 288
     Top = 256
   end
+  object OD: TOpenDialog
+    Left = 920
+    Top = 392
+  end
 end

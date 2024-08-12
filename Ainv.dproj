@@ -3,7 +3,7 @@
         <ProjectGuid>{98EE83F1-EE52-4E2D-90DB-2B1E8DF57102}</ProjectGuid>
         <MainSource>Ainv.dpr</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
         <FrameworkType>VCL</FrameworkType>
