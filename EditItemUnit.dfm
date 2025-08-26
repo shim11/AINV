@@ -2,8 +2,8 @@ object fmEditItem: TfmEditItem
   Left = 820
   Top = 561
   Caption = 'Edit inventory parts '
-  ClientHeight = 322
-  ClientWidth = 525
+  ClientHeight = 417
+  ClientWidth = 532
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,6 +11,7 @@ object fmEditItem: TfmEditItem
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   KeyPreview = True
+  OldCreateOrder = True
   PopupMenu = PopupMenu1
   Position = poMainFormCenter
   PrintScale = poNone
@@ -18,21 +19,22 @@ object fmEditItem: TfmEditItem
   OnCloseQuery = FormCloseQuery
   OnKeyUp = FormKeyUp
   OnShow = FormShow
+  PixelsPerInch = 96
   TextHeight = 16
   object Panel1: TPanel
     Left = 0
-    Top = 281
-    Width = 525
+    Top = 376
+    Width = 532
     Height = 41
     Align = alBottom
     TabOrder = 0
-    ExplicitTop = 280
-    ExplicitWidth = 521
+    ExplicitTop = 324
+    ExplicitWidth = 525
     DesignSize = (
-      525
+      532
       41)
     object sbClose: TSpeedButton
-      Left = 455
+      Left = 462
       Top = 2
       Width = 75
       Height = 37
@@ -74,12 +76,12 @@ object fmEditItem: TfmEditItem
   object Panel2: TPanel
     Left = 0
     Top = 0
-    Width = 525
-    Height = 281
+    Width = 532
+    Height = 376
     Align = alClient
     TabOrder = 1
-    ExplicitWidth = 521
-    ExplicitHeight = 280
+    ExplicitWidth = 525
+    ExplicitHeight = 324
     object edSearchByName: TEdit
       Left = 257
       Top = 28
@@ -110,9 +112,9 @@ object fmEditItem: TfmEditItem
       TabOrder = 5
     end
     object edQtyInv: TDBEdit
-      Left = 122
-      Top = 189
-      Width = 102
+      Left = 141
+      Top = 187
+      Width = 110
       Height = 24
       DataField = 'qtyInv'
       DataSource = DM.dsItems
@@ -151,9 +153,9 @@ object fmEditItem: TfmEditItem
       Transparent = False
     end
     object StaticText4: TStaticText
-      Left = 122
-      Top = 169
-      Width = 103
+      Left = 141
+      Top = 167
+      Width = 110
       Height = 20
       Alignment = taCenter
       AutoSize = False
@@ -215,8 +217,8 @@ object fmEditItem: TfmEditItem
     end
     object StaticText3: TStaticText
       Left = 5
-      Top = 169
-      Width = 111
+      Top = 167
+      Width = 110
       Height = 20
       Alignment = taCenter
       AutoSize = False
@@ -236,7 +238,7 @@ object fmEditItem: TfmEditItem
     end
     object edQtyToOrder: TDBEdit
       Left = 5
-      Top = 189
+      Top = 187
       Width = 110
       Height = 24
       DataField = 'QtyOrd'
@@ -339,9 +341,9 @@ object fmEditItem: TfmEditItem
       Transparent = False
     end
     object StaticText9: TStaticText
-      Left = 234
-      Top = 169
-      Width = 111
+      Left = 276
+      Top = 167
+      Width = 110
       Height = 20
       Alignment = taCenter
       AutoSize = False
@@ -360,9 +362,9 @@ object fmEditItem: TfmEditItem
       Transparent = False
     end
     object edQtyReceived: TDBEdit
-      Left = 234
-      Top = 189
-      Width = 111
+      Left = 276
+      Top = 187
+      Width = 110
       Height = 24
       DataField = 'QtyReceived'
       DataSource = DM.dsItems
@@ -370,9 +372,9 @@ object fmEditItem: TfmEditItem
       TabOrder = 11
     end
     object StaticText8: TStaticText
-      Left = 350
-      Top = 170
-      Width = 71
+      Left = 409
+      Top = 169
+      Width = 110
       Height = 20
       Alignment = taCenter
       AutoSize = False
@@ -391,9 +393,9 @@ object fmEditItem: TfmEditItem
       Transparent = False
     end
     object edCaseQty: TDBEdit
-      Left = 350
-      Top = 189
-      Width = 70
+      Left = 409
+      Top = 188
+      Width = 110
       Height = 24
       DataField = 'CaseQty'
       DataSource = DM.dsItems
@@ -444,9 +446,9 @@ object fmEditItem: TfmEditItem
       Transparent = False
     end
     object StaticText12: TStaticText
-      Left = 432
-      Top = 170
-      Width = 83
+      Left = 276
+      Top = 320
+      Width = 110
       Height = 20
       Alignment = taCenter
       AutoSize = False
@@ -467,7 +469,7 @@ object fmEditItem: TfmEditItem
     object StaticText13: TStaticText
       Left = 5
       Top = 217
-      Width = 111
+      Width = 110
       Height = 20
       Alignment = taCenter
       AutoSize = False
@@ -496,9 +498,9 @@ object fmEditItem: TfmEditItem
       TabOrder = 14
     end
     object StaticText14: TStaticText
-      Left = 234
-      Top = 218
-      Width = 109
+      Left = 5
+      Top = 320
+      Width = 110
       Height = 20
       Alignment = taCenter
       AutoSize = False
@@ -517,8 +519,8 @@ object fmEditItem: TfmEditItem
       Transparent = False
     end
     object dbeOversize: TDBCheckBox
-      Left = 283
-      Top = 244
+      Left = 55
+      Top = 346
       Width = 16
       Height = 17
       DataField = 'oversize'
@@ -526,8 +528,8 @@ object fmEditItem: TfmEditItem
       TabOrder = 15
     end
     object dbeNeedCase: TDBCheckBox
-      Left = 464
-      Top = 193
+      Left = 316
+      Top = 346
       Width = 16
       Height = 17
       DataField = 'needcase'
@@ -535,9 +537,9 @@ object fmEditItem: TfmEditItem
       TabOrder = 13
     end
     object StaticText15: TStaticText
-      Left = 350
-      Top = 218
-      Width = 70
+      Left = 141
+      Top = 320
+      Width = 110
       Height = 20
       Alignment = taCenter
       AutoSize = False
@@ -556,8 +558,8 @@ object fmEditItem: TfmEditItem
       Transparent = False
     end
     object DBCheckBox1: TDBCheckBox
-      Left = 377
-      Top = 244
+      Left = 186
+      Top = 346
       Width = 16
       Height = 17
       DataField = 'isactive'
@@ -565,9 +567,9 @@ object fmEditItem: TfmEditItem
       TabOrder = 31
     end
     object StaticText16: TStaticText
-      Left = 122
+      Left = 140
       Top = 217
-      Width = 103
+      Width = 110
       Height = 20
       Alignment = taCenter
       AutoSize = False
@@ -586,14 +588,200 @@ object fmEditItem: TfmEditItem
       Transparent = False
     end
     object dbeQtywh: TDBEdit
-      Left = 122
+      Left = 141
       Top = 237
-      Width = 102
+      Width = 110
       Height = 24
       DataField = 'qtywh'
       DataSource = DM.dsItems
       PopupMenu = PopupMenu1
       TabOrder = 33
+    end
+    object StaticText17: TStaticText
+      Left = 409
+      Top = 217
+      Width = 110
+      Height = 20
+      Alignment = taCenter
+      AutoSize = False
+      BevelInner = bvSpace
+      BevelKind = bkSoft
+      Caption = 'Label Owner'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+      TabOrder = 34
+      Transparent = False
+    end
+    object P: TStaticText
+      Left = 276
+      Top = 217
+      Width = 110
+      Height = 20
+      Alignment = taCenter
+      AutoSize = False
+      BevelInner = bvSpace
+      BevelKind = bkSoft
+      Caption = 'Prep Owner'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+      TabOrder = 35
+      Transparent = False
+    end
+    object dbeLabelOwner: TDBEdit
+      Left = 409
+      Top = 237
+      Width = 110
+      Height = 24
+      DataField = 'labelowner'
+      DataSource = DM.dsItems
+      PopupMenu = PopupMenu1
+      TabOrder = 36
+    end
+    object dbePrepOwner: TDBEdit
+      Left = 276
+      Top = 237
+      Width = 110
+      Height = 24
+      DataField = 'prepowner'
+      DataSource = DM.dsItems
+      PopupMenu = PopupMenu1
+      TabOrder = 37
+    end
+    object StaticText18: TStaticText
+      Left = 5
+      Top = 267
+      Width = 110
+      Height = 21
+      Alignment = taCenter
+      AutoSize = False
+      BevelInner = bvSpace
+      BevelKind = bkSoft
+      Caption = 'Pack Weight'
+      Color = clMoneyGreen
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+      TabOrder = 38
+      Transparent = False
+    end
+    object dbePackWeight: TDBEdit
+      Left = 5
+      Top = 287
+      Width = 110
+      Height = 25
+      DataField = 'packweight'
+      DataSource = DM.dsItems
+      PopupMenu = PopupMenu1
+      TabOrder = 39
+    end
+    object StaticText19: TStaticText
+      Left = 140
+      Top = 267
+      Width = 110
+      Height = 21
+      Alignment = taCenter
+      AutoSize = False
+      BevelInner = bvSpace
+      BevelKind = bkSoft
+      Caption = 'Height'
+      Color = clMoneyGreen
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+      TabOrder = 40
+      Transparent = False
+    end
+    object dbeHeight: TDBEdit
+      Left = 141
+      Top = 287
+      Width = 110
+      Height = 25
+      DataField = 'height'
+      DataSource = DM.dsItems
+      PopupMenu = PopupMenu1
+      TabOrder = 41
+    end
+    object StaticText20: TStaticText
+      Left = 276
+      Top = 267
+      Width = 110
+      Height = 21
+      Alignment = taCenter
+      AutoSize = False
+      BevelInner = bvSpace
+      BevelKind = bkSoft
+      Caption = 'Length'
+      Color = clMoneyGreen
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+      TabOrder = 42
+      Transparent = False
+    end
+    object dbeLength: TDBEdit
+      Left = 276
+      Top = 287
+      Width = 110
+      Height = 25
+      DataField = 'length'
+      DataSource = DM.dsItems
+      PopupMenu = PopupMenu1
+      TabOrder = 43
+    end
+    object StaticText21: TStaticText
+      Left = 409
+      Top = 267
+      Width = 110
+      Height = 21
+      Alignment = taCenter
+      AutoSize = False
+      BevelInner = bvSpace
+      BevelKind = bkSoft
+      Caption = 'Width'
+      Color = clMoneyGreen
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+      TabOrder = 44
+      Transparent = False
+    end
+    object dbeWidth: TDBEdit
+      Left = 409
+      Top = 287
+      Width = 110
+      Height = 25
+      DataField = 'width'
+      DataSource = DM.dsItems
+      PopupMenu = PopupMenu1
+      TabOrder = 45
     end
   end
   object PopupMenu1: TPopupMenu

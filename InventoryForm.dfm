@@ -24,7 +24,7 @@ object fmInventory: TfmInventory
     Top = 65
     Width = 1290
     Height = 608
-    ActivePage = tshLoadData
+    ActivePage = tchFeedback
     Align = alClient
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
@@ -1064,7 +1064,7 @@ object fmInventory: TfmInventory
       end
     end
     object tchFeedback: TTabSheet
-      Caption = 'Feedback request'
+      Caption = 'Company info'
       ImageIndex = 4
       object Panel14: TPanel
         Left = 0
@@ -1074,85 +1074,15 @@ object fmInventory: TfmInventory
         Align = alClient
         TabOrder = 0
         object Panel15: TPanel
-          Left = 43
+          Left = 0
           Top = 49
-          Width = 758
+          Width = 695
           Height = 471
           BorderStyle = bsSingle
           TabOrder = 0
-          object Label37: TLabel
-            Left = 80
-            Top = 200
-            Width = 99
-            Height = 16
-            Caption = 'SMTP server :'
-          end
-          object Label38: TLabel
-            Left = 447
-            Top = 200
-            Width = 82
-            Height = 16
-            Caption = 'SMTP port :'
-          end
-          object Label39: TLabel
-            Left = 80
-            Top = 251
-            Width = 86
-            Height = 16
-            Caption = 'From name :'
-          end
-          object Label40: TLabel
-            Left = 80
-            Top = 275
-            Width = 86
-            Height = 16
-            Caption = 'From email :'
-          end
-          object Label41: TLabel
-            Left = 80
-            Top = 300
-            Width = 67
-            Height = 16
-            Caption = 'Reply to :'
-          end
-          object Label42: TLabel
-            Left = 80
-            Top = 225
-            Width = 85
-            Height = 16
-            Caption = 'SMTP user :'
-          end
-          object Label43: TLabel
-            Left = 447
-            Top = 225
-            Width = 77
-            Height = 16
-            Caption = 'Password :'
-          end
-          object Label44: TLabel
-            Left = 448
-            Top = 385
-            Width = 99
-            Height = 16
-            Caption = 'Mails per hour'
-          end
-          object lbFGreen: TLabel
-            Left = 86
-            Top = 124
-            Width = 656
-            Height = 20
-            AutoSize = False
-            Caption = '...'
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clGreen
-            Font.Height = -16
-            Font.Name = 'MS Sans Serif'
-            Font.Style = [fsBold]
-            ParentFont = False
-          end
           object lbFRed: TLabel
             Left = 86
-            Top = 156
+            Top = 138
             Width = 656
             Height = 20
             AutoSize = False
@@ -1163,211 +1093,156 @@ object fmInventory: TfmInventory
             Font.Name = 'MS Sans Serif'
             Font.Style = [fsBold]
             ParentFont = False
+            Visible = False
           end
-          object Label47: TLabel
-            Left = 272
-            Top = 16
-            Width = 193
-            Height = 16
-            Caption = 'Last feedback request send'
-          end
-          object Label71: TLabel
-            Left = 80
-            Top = 325
-            Width = 62
-            Height = 16
-            Caption = 'Copy to :'
-          end
-          object edCopyTo: TEdit
-            Left = 196
-            Top = 322
-            Width = 439
-            Height = 24
-            TabOrder = 0
-          end
-          object edFromMail: TDBEdit
-            Left = 196
-            Top = 272
-            Width = 439
-            Height = 24
-            DataField = 'email'
-            DataSource = DM.dsSelfInfo
-            TabOrder = 1
-          end
-          object edFromName: TDBEdit
-            Left = 196
-            Top = 248
-            Width = 439
-            Height = 24
-            DataField = 'shortname'
-            DataSource = DM.dsSelfInfo
-            TabOrder = 2
-          end
-          object edPort: TDBEdit
-            Left = 535
-            Top = 197
-            Width = 100
-            Height = 24
-            DataField = 'smtp_port'
-            DataSource = DM.dsSelfInfo
-            TabOrder = 3
-          end
-          object edUser: TDBEdit
-            Left = 196
-            Top = 222
-            Width = 245
-            Height = 24
-            DataField = 'smtp_user'
-            DataSource = DM.dsSelfInfo
-            TabOrder = 4
-          end
-          object edPassword: TDBEdit
-            Left = 517
-            Top = 222
-            Width = 118
-            Height = 24
-            DataField = 'smtp_password'
-            DataSource = DM.dsSelfInfo
-            PasswordChar = '*'
-            TabOrder = 5
-          end
-          object btnSendRequest: TBitBtn
-            Left = 196
-            Top = 379
-            Width = 119
-            Height = 33
-            Caption = 'Send request'
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clWindowText
-            Font.Height = -16
-            Font.Name = 'MS Sans Serif'
-            Font.Style = [fsBold]
-            ParentFont = False
-            TabOrder = 6
-            OnClick = btnSendRequestClick
-          end
-          object edMailsPerHour: TEdit
-            Left = 410
-            Top = 382
-            Width = 33
-            Height = 24
-            TabOrder = 7
-            Text = '80'
-          end
-          object Panel16: TPanel
+          object Panel22: TPanel
             Left = 0
-            Top = 39
-            Width = 753
-            Height = 76
-            BevelInner = bvLowered
-            BevelKind = bkFlat
-            BorderStyle = bsSingle
-            TabOrder = 8
-            object lbLastSendDate: TLabel
-              Left = 11
-              Top = 35
-              Width = 189
-              Height = 20
-              AutoSize = False
-              Caption = '...'
-              Font.Charset = DEFAULT_CHARSET
-              Font.Color = clBlue
-              Font.Height = -16
-              Font.Name = 'MS Sans Serif'
-              Font.Style = [fsBold]
-              ParentFont = False
-            end
-            object Label45: TLabel
-              Left = 51
-              Top = 5
-              Width = 53
+            Top = 41
+            Width = 693
+            Height = 296
+            TabOrder = 0
+            object Label37: TLabel
+              Left = 59
+              Top = 46
+              Width = 98
               Height = 16
-              Caption = 'Sent on'
-              Font.Charset = DEFAULT_CHARSET
-              Font.Color = clNavy
-              Font.Height = -13
-              Font.Name = 'MS Sans Serif'
-              Font.Style = [fsBold]
-              ParentFont = False
+              Caption = 'SMTP server :'
             end
-            object Label48: TLabel
-              Left = 307
-              Top = 5
-              Width = 52
+            object Label38: TLabel
+              Left = 426
+              Top = 46
+              Width = 81
               Height = 16
-              Caption = 'Order #'
-              Font.Charset = DEFAULT_CHARSET
-              Font.Color = clNavy
-              Font.Height = -13
-              Font.Name = 'MS Sans Serif'
-              Font.Style = [fsBold]
-              ParentFont = False
+              Caption = 'SMTP port :'
             end
-            object Label49: TLabel
-              Left = 543
-              Top = 5
-              Width = 49
+            object Label39: TLabel
+              Left = 59
+              Top = 108
+              Width = 85
               Height = 16
-              Caption = 'Sent to'
-              Font.Charset = DEFAULT_CHARSET
-              Font.Color = clNavy
-              Font.Height = -13
-              Font.Name = 'MS Sans Serif'
-              Font.Style = [fsBold]
-              ParentFont = False
+              Caption = 'From name :'
             end
-            object lbOrderNo: TLabel
-              Left = 227
-              Top = 35
-              Width = 237
-              Height = 20
-              AutoSize = False
-              Caption = '...'
-              Font.Charset = DEFAULT_CHARSET
-              Font.Color = clBlue
-              Font.Height = -16
-              Font.Name = 'MS Sans Serif'
-              Font.Style = [fsBold]
-              ParentFont = False
+            object Label40: TLabel
+              Left = 59
+              Top = 140
+              Width = 85
+              Height = 16
+              Caption = 'From email :'
             end
-            object lbSentTo: TLabel
-              Left = 487
-              Top = 35
-              Width = 258
-              Height = 20
-              AutoSize = False
-              Caption = '...'
-              Font.Charset = DEFAULT_CHARSET
-              Font.Color = clBlue
-              Font.Height = -16
-              Font.Name = 'MS Sans Serif'
-              Font.Style = [fsBold]
-              ParentFont = False
+            object Label41: TLabel
+              Left = 59
+              Top = 171
+              Width = 66
+              Height = 16
+              Caption = 'Reply to :'
             end
-          end
-          object edSmtp: TDBEdit
-            Left = 196
-            Top = 197
-            Width = 245
-            Height = 24
-            DataField = 'smtp_server'
-            DataSource = DM.dsSelfInfo
-            TabOrder = 9
-          end
-          object edReplyTo: TDBEdit
-            Left = 196
-            Top = 297
-            Width = 439
-            Height = 24
-            DataField = 'reply_To'
-            DataSource = DM.dsSelfInfo
-            TabOrder = 10
+            object Label42: TLabel
+              Left = 59
+              Top = 77
+              Width = 84
+              Height = 16
+              Caption = 'SMTP user :'
+            end
+            object Label43: TLabel
+              Left = 426
+              Top = 71
+              Width = 76
+              Height = 16
+              Caption = 'Password :'
+            end
+            object Label71: TLabel
+              Left = 59
+              Top = 203
+              Width = 61
+              Height = 16
+              Caption = 'Copy to :'
+            end
+            object edCopyTo: TEdit
+              Left = 175
+              Top = 201
+              Width = 438
+              Height = 24
+              TabOrder = 0
+            end
+            object edFromMail: TDBEdit
+              Left = 175
+              Top = 137
+              Width = 438
+              Height = 24
+              DataField = 'email'
+              DataSource = DM.dsSelfInfo
+              TabOrder = 1
+            end
+            object edFromName: TDBEdit
+              Left = 175
+              Top = 106
+              Width = 438
+              Height = 24
+              DataField = 'shortname'
+              DataSource = DM.dsSelfInfo
+              TabOrder = 2
+            end
+            object edPort: TDBEdit
+              Left = 514
+              Top = 43
+              Width = 99
+              Height = 24
+              DataField = 'smtp_port'
+              DataSource = DM.dsSelfInfo
+              TabOrder = 3
+            end
+            object edUser: TDBEdit
+              Left = 175
+              Top = 74
+              Width = 232
+              Height = 24
+              DataField = 'smtp_user'
+              DataSource = DM.dsSelfInfo
+              TabOrder = 4
+            end
+            object edPassword: TDBEdit
+              Left = 496
+              Top = 68
+              Width = 117
+              Height = 24
+              DataField = 'smtp_password'
+              DataSource = DM.dsSelfInfo
+              PasswordChar = '*'
+              TabOrder = 5
+            end
+            object edSmtp: TDBEdit
+              Left = 175
+              Top = 43
+              Width = 232
+              Height = 24
+              DataField = 'smtp_server'
+              DataSource = DM.dsSelfInfo
+              TabOrder = 6
+            end
+            object edReplyTo: TDBEdit
+              Left = 175
+              Top = 169
+              Width = 438
+              Height = 24
+              DataField = 'reply_To'
+              DataSource = DM.dsSelfInfo
+              TabOrder = 7
+            end
+            object Button1: TButton
+              Left = 310
+              Top = 247
+              Width = 88
+              Height = 25
+              Caption = 'Test email'
+              TabOrder = 8
+              OnClick = btnTestEmailClick
+            end
           end
         end
         object adminPanel2: TPanel
-          Left = 807
+          Left = 701
           Top = 50
-          Width = 562
+          Width = 668
           Height = 471
           BevelInner = bvLowered
           BevelKind = bkFlat
@@ -1601,11 +1476,13 @@ object fmInventory: TfmInventory
             TabOrder = 12
           end
           object btnSaveInfo: TButton
-            Left = 328
-            Top = 352
+            Left = 208
+            Top = 392
             Width = 179
-            Height = 25
+            Height = 49
             Caption = 'Save company info'
+            DoubleBuffered = False
+            ParentDoubleBuffered = False
             TabOrder = 13
             OnClick = btnSaveInfoClick
           end
@@ -3130,7 +3007,7 @@ object fmInventory: TfmInventory
       end
     end
     object Ver1291: TMenuItem
-      Caption = 'Ver. 6.16'
+      Caption = 'Ver. 6.55'
       Checked = True
       Enabled = False
     end

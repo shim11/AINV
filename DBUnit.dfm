@@ -2,8 +2,8 @@ object DM: TDM
   OldCreateOrder = False
   OnCreate = DataModuleCreate
   OnDestroy = DataModuleDestroy
-  Height = 725
-  Width = 1023
+  Height = 766
+  Width = 1105
   object dsItems: TDataSource
     DataSet = tbItems
     Left = 112
@@ -297,6 +297,38 @@ object DM: TDM
     object tbItemsqtywh: TIntegerField
       FieldName = 'qtywh'
       Origin = 'qtywh'
+    end
+    object tbItemsprepowner: TWideStringField
+      FieldName = 'prepowner'
+      Size = 32
+    end
+    object tbItemslabelowner: TWideStringField
+      FieldName = 'labelowner'
+      Size = 32
+    end
+    object tbItemsheight: TBCDField
+      FieldName = 'height'
+      Origin = 'height'
+      Precision = 10
+      Size = 2
+    end
+    object tbItemslength: TBCDField
+      FieldName = 'length'
+      Origin = 'length'
+      Precision = 10
+      Size = 2
+    end
+    object tbItemswidth: TBCDField
+      FieldName = 'width'
+      Origin = 'width'
+      Precision = 10
+      Size = 2
+    end
+    object tbItemspackweight: TBCDField
+      FieldName = 'packweight'
+      Origin = 'packweight'
+      Precision = 10
+      Size = 2
     end
   end
   object qAInv: TFDQuery
@@ -5236,6 +5268,38 @@ object DM: TDM
     object IntegerField9: TIntegerField
       FieldName = 'qtywh'
       Origin = 'qtywh'
+    end
+    object tbSearchItemsprepowner: TWideStringField
+      FieldName = 'prepowner'
+      Size = 32
+    end
+    object tbSearchItemslabelowner: TWideStringField
+      FieldName = 'labelowner'
+      Size = 32
+    end
+    object tbSearchItemsheight: TBCDField
+      FieldName = 'height'
+      Origin = 'height'
+      Precision = 10
+      Size = 2
+    end
+    object tbSearchItemslength: TBCDField
+      FieldName = 'length'
+      Origin = 'length'
+      Precision = 10
+      Size = 2
+    end
+    object tbSearchItemswidth: TBCDField
+      FieldName = 'width'
+      Origin = 'width'
+      Precision = 10
+      Size = 2
+    end
+    object tbSearchItemspackweight: TBCDField
+      FieldName = 'packweight'
+      Origin = 'packweight'
+      Precision = 10
+      Size = 2
     end
   end
   object dsSearchItems: TDataSource

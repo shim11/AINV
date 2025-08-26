@@ -146,32 +146,7 @@ type
     Panel14: TPanel;
     Panel15: TPanel;
     TimerForFeedback: TTimer;
-    Label37: TLabel;
-    Label38: TLabel;
-    Label39: TLabel;
-    Label40: TLabel;
-    Label41: TLabel;
-    edCopyTo: TEdit;
-    edFromMail: TDBEdit;
-    edFromName: TDBEdit;
-    edPort: TDBEdit;
-    edUser: TDBEdit;
-    Label42: TLabel;
-    Label43: TLabel;
-    edPassword: TDBEdit;
-    btnSendRequest: TBitBtn;
-    edMailsPerHour: TEdit;
-    Label44: TLabel;
-    lbFGreen: TLabel;
     lbFRed: TLabel;
-    Label47: TLabel;
-    Panel16: TPanel;
-    lbLastSendDate: TLabel;
-    Label45: TLabel;
-    Label48: TLabel;
-    Label49: TLabel;
-    lbOrderNo: TLabel;
-    lbSentTo: TLabel;
     Panel17: TPanel;
     Label46: TLabel;
     Label50: TLabel;
@@ -231,7 +206,6 @@ type
     lbSelectedLines: TLabel;
     cbBnfUpdate: TCheckBox;
     cbTmcUpdate: TCheckBox;
-    edSmtp: TDBEdit;
     adminPanel2: TPanel;
     Label54: TLabel;
     edMyName: TDBEdit;
@@ -282,9 +256,25 @@ type
     btnProcessAll: TButton;
     btnTestEmail: TButton;
     SMTP: TIdSMTP;
-    edReplyTo: TDBEdit;
-    Label71: TLabel;
     btnFixPoLines: TButton;
+    Panel22: TPanel;
+    Label37: TLabel;
+    Label38: TLabel;
+    Label39: TLabel;
+    Label40: TLabel;
+    Label41: TLabel;
+    Label42: TLabel;
+    Label43: TLabel;
+    Label71: TLabel;
+    edCopyTo: TEdit;
+    edFromMail: TDBEdit;
+    edFromName: TDBEdit;
+    edPort: TDBEdit;
+    edUser: TDBEdit;
+    edPassword: TDBEdit;
+    edSmtp: TDBEdit;
+    edReplyTo: TDBEdit;
+    Button1: TButton;
     procedure dbgMainDrawColumnCell(Sender: TObject; const Rect: TRect;
       DataCol: Integer; Column: TColumn; State: TGridDrawState);
     procedure btnCreatePOClick(Sender: TObject);
@@ -521,6 +511,8 @@ var
   vendor: string;
 begin
   addActivity(DM.AlonDb, 'btnCreatePOClick');
+  DM.checkPrepAndLabelOwner('');
+  DM.checkItemDimensions('');
   poCount := 0;
   if (DM.GetCountAddedToPO > 0) then
     with DM do
@@ -806,14 +798,14 @@ begin
   lbLastUpdateShultz.Caption := DateTimeToStr(DM.getLastUpdateInvQty('SC'));
   lbLastUpdateMele.Caption := DateTimeToStr(DM.getLastUpdateInvQty('MELE'));
   lbLastUpdateBWKD.Caption := DateTimeToStr(DM.getLastUpdateInvQty('BWKD'));
-  lbLastSendDate.Caption :=
-    DM.getSqlResult('select max(sentdate) from forders');
-  lbOrderNo.Caption := DM.getSqlResult
-    ('select orderid from forders where sentdate=(select max(sentdate) from forders) order by shipdate desc limit 1');
-  lbSentTo.Caption := DM.getSqlResult
-    ('select name from forders where sentdate=(select max(sentdate) from forders) order by shipdate desc limit 1');
+//  lbLastSendDate.Caption :=
+//    DM.getSqlResult('select max(sentdate) from forders');
+//  lbOrderNo.Caption := DM.getSqlResult
+//    ('select orderid from forders where sentdate=(select max(sentdate) from forders) order by shipdate desc limit 1');
+//  lbSentTo.Caption := DM.getSqlResult
+//    ('select name from forders where sentdate=(select max(sentdate) from forders) order by shipdate desc limit 1');
   user := Uppercase(GetCurrentUserName);
-  if ((user = 'ADMINISTRATOR') or (user = 'SHIM')) then
+  if ((user = 'ADMINISTRATOR') or (user = 'SHIM') or (user = 'ALON')) then
   begin
     adminPanel.Visible := true;
     adminPanel2.Visible := true;
@@ -1471,7 +1463,7 @@ var
   HourNow, MinNow, Sec, MSec: Word;
   // admin, user               : String;
 begin
-  if ((Uppercase(GetCurrentUserName) <> 'SHIM') and
+  if ((Uppercase(GetCurrentUserName) <> 'ALON') and
     (Uppercase(GetCurrentUserName) <> 'ADMINISTRATOR')) then
   begin
     Log('exits without any action');
@@ -2183,6 +2175,10 @@ end;
 procedure TfmInventory.btnSaveInfoClick(Sender: TObject);
 begin
   DM.tbSelfInfo.Post;
+  MAIL_SERVER_HOST := DM.tbSelfInfosmtp_server.Value;
+  MAIL_SERVER_PORT := DM.tbSelfInfosmtp_port.Value;
+  MAIL_SERVER_ACCOUNT := DM.tbSelfInfosmtp_user.Value;
+  MAIL_SERVER_PASSWORD := DM.tbSelfInfosmtp_password.Value;
 end;
 
 procedure TfmInventory.btnSelectFoundClick(Sender: TObject);
@@ -2919,7 +2915,7 @@ var
   user: String;
 begin
   user := GetCurrentUserName;
-  if ((Uppercase(GetCurrentUserName) <> 'SHIM') and
+  if ((Uppercase(GetCurrentUserName) <> 'ALON') and
     (Uppercase(GetCurrentUserName) <> 'ADMINISTRATOR')) then
   begin
     // log('exits without any action');
@@ -2946,125 +2942,125 @@ end;
 
 procedure TfmInventory.btnSendRequestClick(Sender: TObject);
 begin
-  addActivity(DM.AlonDb, 'TfmInventory.btnSendRequestClick');
-  if (btnSendRequest.Caption = 'Send request') then
-  begin
-    TimerForFeedback.Enabled := false;
-    TimerForFeedback.Enabled := true;
-    // 26-02-2020
-    // SendRequests();
-  end
-  else
-  begin
-    btnSendRequest.Caption := 'Send request';
-    EmergencyStop := true;
-  end;
-  lbFRed.Caption := lbFRed.Caption + '. Done.';
+//  addActivity(DM.AlonDb, 'TfmInventory.btnSendRequestClick');
+//  if (btnSendRequest.Caption = 'Send request') then
+//  begin
+//    TimerForFeedback.Enabled := false;
+//    TimerForFeedback.Enabled := true;
+//    // 26-02-2020
+//    // SendRequests();
+//  end
+//  else
+//  begin
+//    btnSendRequest.Caption := 'Send request';
+//    EmergencyStop := true;
+//  end;
+//  lbFRed.Caption := lbFRed.Caption + '. Done.';
 end;
 
 procedure TfmInventory.SendRequests();
-var
-  q: TFdQuery;
-  order, title, email, ship, sname: string;
-  Count, failed, mPerHour: Integer;
-  sent: Boolean;
+//var
+//  q: TFdQuery;
+//  order, title, email, ship, sname: string;
+//  Count, failed, mPerHour: Integer;
+//  sent: Boolean;
 begin
-  btnSendRequest.Caption := 'Stop';
-  EmergencyStop := false;
-  mPerHour := StrToInt(edMailsPerHour.Text);
-  q := TFdQuery.Create(nil);
-  try
-    with q do
-    begin
-      Connection := DM.AlonDb;
-      Active := false;
-      SQL.Clear;
-      SQL.Add('select orderid, title, email, shipping, name from forders where sent=false and email is not null and email>'
-        + QuotedStr(''));
-      SQL.Add('  and  age(shipdate)  between (10 * interval ' +
-        QuotedStr('1 day') + ') and (90 * interval ' + QuotedStr('1 day') +
-        ') order by shipdate');
-      Active := true;
-      Count := 0;
-      failed := 0;
-      First;
-      Log('Found ' + IntToStr(RecordCount) + ' records to send', false, false,
-        'SendRequests');
-      if (RecordCount > 0) then
-      begin
-        DM.SMTP.Host := edSmtp.Text;
-        DM.SMTP.Port := StrToInt(edPort.Text);
-        DM.SMTP.Username := edUser.Text;
-        Application.ProcessMessages;
-        if (edPassword.Text > '') then
-        begin
-          DM.SMTP.Password := edPassword.Text;
-          DM.SMTP.AuthType := satDefault;
-          // SMTP.SocksInfo.Authentication := saUsernamePassword;
-        end
-        else
-        begin
-          DM.SMTP.AuthType := satNone;
-        end;
-        if (not DM.SMTP.Connected) then
-        begin
-          lbFGreen.Caption := 'Trying to connect to ' + DM.SMTP.Host + '...';
-          Application.ProcessMessages;
-          DM.SMTP.Connect;
-        end;
-        while (not DM.SMTP.Connected) do
-        begin
-          lbFGreen.Caption := 'Trying to connect to ' + DM.SMTP.Host + '...';
-          Application.ProcessMessages;
-        end;
-        Log('Connected to SMTP server:' + edSmtp.Text + ':' + edPort.Text,
-          false, false, 'SendRequests');
-        while not Eof do
-        begin
-          order := Trim(Fields[0].AsString);
-          title := Trim(Fields[1].AsString);
-          email := Trim(Fields[2].AsString);
-          ship := Trim(Fields[3].AsString);
-          sname := Trim(Fields[4].AsString);
-          if (Count = mPerHour) then
-          begin
-            DM.SMTP.Disconnect;
-            TimerForFeedback.Enabled := false;
-            TimerForFeedback.Enabled := true;
-            Exit;
-          end;
-          inc(Count);
-          if (EmergencyStop) then
-            Exit;
-          sent := sendmail(order, title, email, ship, sname);
-          if (sent) then
-            DM.RunSql('update forders set sent=true, sentdate=' +
-              QuotedStr(DateTimeToStr(Now)) + ' where orderid=' +
-              QuotedStr(order))
-          else
-          begin
-            inc(failed);
-          end;
-          lbFRed.Caption := 'Send ' + IntToStr(RecNo - failed) + ' of ' +
-            IntToStr(RecordCount) + ' emails. Failed = ' + IntToStr(failed);
-          Log('Send ' + IntToStr(RecNo - failed) + ' of ' +
-            IntToStr(RecordCount) + ' emails. Failed = ' + IntToStr(failed),
-            false, false, 'SendRequests');
-          Next;
-        end;
-      end
-      else
-      begin
-        Log('All requests were sent... Application exit.+++++++++++++++++++++++',
-          false, false, 'SendRequests');
-        // Application.Terminate;
-        Exit;
-      end;
-    end;
-  finally
-    DM.SMTP.Disconnect;
-    q.Free;
-  end;
+//  btnSendRequest.Caption := 'Stop';
+//  EmergencyStop := false;
+//  mPerHour := StrToInt(edMailsPerHour.Text);
+//  q := TFdQuery.Create(nil);
+//  try
+//    with q do
+//    begin
+//      Connection := DM.AlonDb;
+//      Active := false;
+//      SQL.Clear;
+//      SQL.Add('select orderid, title, email, shipping, name from forders where sent=false and email is not null and email>'
+//        + QuotedStr(''));
+//      SQL.Add('  and  age(shipdate)  between (10 * interval ' +
+//        QuotedStr('1 day') + ') and (90 * interval ' + QuotedStr('1 day') +
+//        ') order by shipdate');
+//      Active := true;
+//      Count := 0;
+//      failed := 0;
+//      First;
+//      Log('Found ' + IntToStr(RecordCount) + ' records to send', false, false,
+//        'SendRequests');
+//      if (RecordCount > 0) then
+//      begin
+//        DM.SMTP.Host := edSmtp.Text;
+//        DM.SMTP.Port := StrToInt(edPort.Text);
+//        DM.SMTP.Username := edUser.Text;
+//        Application.ProcessMessages;
+//        if (edPassword.Text > '') then
+//        begin
+//          DM.SMTP.Password := edPassword.Text;
+//          DM.SMTP.AuthType := satDefault;
+//          // SMTP.SocksInfo.Authentication := saUsernamePassword;
+//        end
+//        else
+//        begin
+//          DM.SMTP.AuthType := satNone;
+//        end;
+//        if (not DM.SMTP.Connected) then
+//        begin
+//          lbFGreen.Caption := 'Trying to connect to ' + DM.SMTP.Host + '...';
+//          Application.ProcessMessages;
+//          DM.SMTP.Connect;
+//        end;
+//        while (not DM.SMTP.Connected) do
+//        begin
+//          lbFGreen.Caption := 'Trying to connect to ' + DM.SMTP.Host + '...';
+//          Application.ProcessMessages;
+//        end;
+//        Log('Connected to SMTP server:' + edSmtp.Text + ':' + edPort.Text,
+//          false, false, 'SendRequests');
+//        while not Eof do
+//        begin
+//          order := Trim(Fields[0].AsString);
+//          title := Trim(Fields[1].AsString);
+//          email := Trim(Fields[2].AsString);
+//          ship := Trim(Fields[3].AsString);
+//          sname := Trim(Fields[4].AsString);
+//          if (Count = mPerHour) then
+//          begin
+//            DM.SMTP.Disconnect;
+//            TimerForFeedback.Enabled := false;
+//            TimerForFeedback.Enabled := true;
+//            Exit;
+//          end;
+//          inc(Count);
+//          if (EmergencyStop) then
+//            Exit;
+//          sent := sendmail(order, title, email, ship, sname);
+//          if (sent) then
+//            DM.RunSql('update forders set sent=true, sentdate=' +
+//              QuotedStr(DateTimeToStr(Now)) + ' where orderid=' +
+//              QuotedStr(order))
+//          else
+//          begin
+//            inc(failed);
+//          end;
+//          lbFRed.Caption := 'Send ' + IntToStr(RecNo - failed) + ' of ' +
+//            IntToStr(RecordCount) + ' emails. Failed = ' + IntToStr(failed);
+//          Log('Send ' + IntToStr(RecNo - failed) + ' of ' +
+//            IntToStr(RecordCount) + ' emails. Failed = ' + IntToStr(failed),
+//            false, false, 'SendRequests');
+//          Next;
+//        end;
+//      end
+//      else
+//      begin
+//        Log('All requests were sent... Application exit.+++++++++++++++++++++++',
+//          false, false, 'SendRequests');
+//        // Application.Terminate;
+//        Exit;
+//      end;
+//    end;
+//  finally
+//    DM.SMTP.Disconnect;
+//    q.Free;
+//  end;
 end;
 
 procedure TfmInventory.SMTPFailedRecipient(Sender: TObject;
@@ -3206,8 +3202,8 @@ begin
     PostMessage.Body := mailBody;
     // SMTP.PostMessage.Attachments.Add('tmp.htm');
     PostMessage.Subject := 'Regarding your purchase of ' + title + '';
-    lbFGreen.Caption := 'Sends mail to <' +
-      PostMessage.Recipients.EMailAddresses + '>';
+//    lbFGreen.Caption := 'Sends mail to <' +
+//      PostMessage.Recipients.EMailAddresses + '>';
     Application.ProcessMessages;
     // if (not SMTP.Connected) then
     // SMTP.Connect;
@@ -3215,9 +3211,9 @@ begin
       DM.SMTP.Send(PostMessage);
       Log('Sends mail to <' + PostMessage.Recipients.EMailAddresses + '>' +
         ' order #=' + order + ' name=' + sname, false, false, 'SendRequests');
-      lbOrderNo.Caption := order;
-      lbLastSendDate.Caption := DateTimeToStr(Now);
-      lbSentTo.Caption := sname;
+//      lbOrderNo.Caption := order;
+//      lbLastSendDate.Caption := DateTimeToStr(Now);
+//      lbSentTo.Caption := sname;
     except
       Log('Failed to send mail to <' + PostMessage.Recipients.EMailAddresses +
         '> ' + ' order #=' + order + ' name=' + sname, false, false,

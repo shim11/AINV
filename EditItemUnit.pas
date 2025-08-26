@@ -48,6 +48,18 @@ type
     StaticText16: TStaticText;
     dbeQtywh: TDBEdit;
     PMDBNavigator1: TDBNavigator;
+    StaticText17: TStaticText;
+    P: TStaticText;
+    dbeLabelOwner: TDBEdit;
+    dbePrepOwner: TDBEdit;
+    StaticText18: TStaticText;
+    dbePackWeight: TDBEdit;
+    StaticText19: TStaticText;
+    dbeHeight: TDBEdit;
+    StaticText20: TStaticText;
+    dbeLength: TDBEdit;
+    StaticText21: TStaticText;
+    dbeWidth: TDBEdit;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure sbCloseClick(Sender: TObject);
     procedure Saveitem1Click(Sender: TObject);

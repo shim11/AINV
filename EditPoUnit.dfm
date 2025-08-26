@@ -527,11 +527,11 @@ object fmPo: TfmPo
       OnClick = sendMailPOToVendor
     end
     object btnCreateAmazonPlan: TBitBtn
-      Left = 403
+      Left = 411
       Top = 15
       Width = 126
       Height = 42
-      Caption = 'Split PO lines by Amazon MWS '
+      Caption = 'Split PO lines by Amazon'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clGreen
       Font.Height = -13
@@ -543,11 +543,11 @@ object fmPo: TfmPo
       OnClick = btnCreateAmazonPlanClick
     end
     object btnCreateShip: TBitBtn
-      Left = 548
+      Left = 536
       Top = 15
-      Width = 124
+      Width = 134
       Height = 42
-      Caption = 'Create shipping Amazon MWS '
+      Caption = 'Confirm shippings '
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clRed
       Font.Height = -13
@@ -559,9 +559,9 @@ object fmPo: TfmPo
       OnClick = btnCreateShipClick
     end
     object btnPrintItemLabels: TBitBtn
-      Left = 297
+      Left = 276
       Top = 15
-      Width = 90
+      Width = 104
       Height = 42
       Caption = 'Print item'#39's labels'
       Font.Charset = DEFAULT_CHARSET

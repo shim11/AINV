@@ -147,9 +147,18 @@ end;
 procedure TfmPo.btnCreateAmazonPlanClick(Sender: TObject);
 var
   po: string;
+  i : integer;
 begin
   // addActivity(DM.AlonDb, 'btnCreateAmazonPlanClick');
   po := DM.tbPoPo.AsString;
+  addActivity(DM.AlonDb, 'TfmPurchaseOrders.checkPrepAndLabelOwner po=' + po);
+  DM.checkPrepAndLabelOwner(po);
+  DM.checkItemDimensions(po);
+for i := 1 to 2 do
+    begin
+    sleep(1000);
+    application.processmessages;
+    end;
   createAmazonPlan(po);
   with DM do
   begin
@@ -190,7 +199,8 @@ var
   showVendor, tmpFiltered, bulkOrder: Boolean;
   unitsPerCase, cases, i, qtyByCase: Integer;
   sku, warehouse, amazonOrder, qty, labelprep, errItems: string;
-  vAddress, vCity, vCountry, vZip, vState: String;
+  prepowner, labelowner,height, weight, item_length,width, errStr : string;
+  vAddress, vCity, vCountry, vZip, vState,vPhone: String;
   qPOLines: TFDQuery;
   Delim: Char;
 begin
@@ -249,6 +259,7 @@ begin
         end
         else
           vZip := Trim(tbVendorsZip.AsString);
+          vPhone := Trim(tbVendorsphone.AsString);
         if (mess > '') then
         begin
           showMessage(mess);
@@ -287,11 +298,28 @@ begin
             unitsPerCase := 1;
           cases := qPOLines.FieldByName('Qty').AsInteger div unitsPerCase;
           qtyByCase := DM.CalcQtyByCase(qPOLines.FieldByName('Qty').AsInteger, unitsPerCase);
+          prepowner := DM.getDetailsFromItems(qPOLines.FieldByName('SKU').AsString, 'prepowner');
+          labelowner := DM.getDetailsFromItems(qPOLines.FieldByName('SKU').AsString, 'labelowner');
+          height := DM.getDetailsFromItems(qPOLines.FieldByName('SKU').AsString, 'height');
+          width := DM.getDetailsFromItems(qPOLines.FieldByName('SKU').AsString, 'width');
+          item_length := DM.getDetailsFromItems(qPOLines.FieldByName('SKU').AsString, 'length');
+          weight := DM.getDetailsFromItems(qPOLines.FieldByName('SKU').AsString, 'packweight');
+          if (height = '') or (width = '') or (item_length = '') then
+            errStr := errStr + qPOLines.FieldByName('SKU').AsString +',';
           TmpLst.Add(qPOLines.FieldByName('SKU').AsString + tab + IntToStr(unitsPerCase) + tab + IntToStr(cases) + tab +
-            IntToStr(qtyByCase));
+            IntToStr(qtyByCase) + tab + prepowner + tab + labelowner
+            + tab + height+ tab + width+ tab + item_length+ tab + weight);
         end;
         qPOLines.Next;
       end;
+
+      if errStr > '' then
+        begin
+          errStr := 'No sizes in items : ' + errStr + #10+ 'Try to split one more time' + #10 ;
+          showMessage(errStr);
+          exit;
+        end;
+
       if (not DirectoryExists(Path + 'PO\')) then
         CreateDir(Path + 'PO\');
       fileName := Path + 'PO\PO_ForAmazon_' + ReplaceStr(po, ',', '_') + '.txt';
@@ -301,13 +329,13 @@ begin
       javaRun := 'java -jar AmazonAinv.jar com.ainv.projects.Starter runModule=CreateInboundShipments ';
       args := 'adr1=' + ReplaceStr(vAddress, ' ', '@') + ' city=' + ReplaceStr(vCity, ' ', '@') + ' country=' +
         ReplaceStr(vCountry, ' ', '@') + ' action=plan' + ' state=' + vState + ' zip=' + vZip + ' labPrep=' +
-        cbLabelPrep.Text + ' logdir=' + ExtractFilePath(ParamStr(0)) + '\ fileName=' + fileName;
+        cbLabelPrep.Text +' phone=' + vPhone + ' logdir=' + ExtractFilePath(ParamStr(0)) + '\ fileName=' + fileName;
       if (FileExists(fileName + '.error')) then
         DeleteFile(PWideChar(fileName + '.error'));
       if (FileExists(fileName + '.answer')) then
         DeleteFile(PWideChar(fileName + '.answer'));
 
-          // showMessage(args);
+      // showMessage(args);
       ExeAndWait(javaRun + args);
 
       if (FileExists(fileName + '.error')) then
@@ -375,6 +403,9 @@ begin
     finally
       Screen.Cursor := crDefault;
       TmpLst.Free;
+      btnRefreshClick(nil);
+      cbAmazonPo.Items := DM.fillCombo('polines', 'amazonpo', ' where po =' + po + ' group by amazonpo', true);
+      cbAmazonPo.ItemIndex := 0;
       if (showVendor) then
       begin
         fmEditVendor.ShowModal;
@@ -386,26 +417,36 @@ end;
 
 procedure TfmPo.btnCreateShipClick(Sender: TObject);
 var
+  TmpLst: TStringList;
   i: Integer;
-  aPo: string;
+  args, po, javaRun, fileName, sku, Path: string;
+  amazonOrder, warehouse, qty, labelprep: string;
+  Delim: Char;
 begin
-  // addActivity(DM.AlonDb, 'btnCreateShipClick');
-  aPo := Trim(cbAmazonPo.Items.Strings[cbAmazonPo.ItemIndex]);
-  if (aPo = 'ALL') then
-  begin
-    for i := 1 to cbAmazonPo.Items.Count - 1 do
+  try
+    Path := ExtractFilePath(ParamStr(0));
+    TmpLst := TStringList.Create;
+    Screen.Cursor := crSQLWait;
+    po := DM.tbPoPo.AsString;
+    Delim := #9;
+    fileName := Path + 'PO\PO_ForAmazon_' + ReplaceStr(po, ',', '_') + '.txt';
+    if (not FileExists(fileName + '.confirm')) then
     begin
-      aPo := Trim(cbAmazonPo.Items.Strings[i]);
-      if (aPo <> '') then
-        CreateAmazonShip(aPo, DM.tbPoPo.AsString);
+      showMessage('File for shipment confirm not exists. '+#10#13+' FileName = ' + fileName + '.confirm');
+      Exit;
     end;
-  end
-  else if (aPo <> '') then
-    CreateAmazonShip(aPo, DM.tbPoPo.AsString);
-  DM.tbPOLines.Filtered := false;
-  cbAmazonPo.Items := DM.fillCombo('polines', 'amazonpo', ' where po =' + DM.tbPoPo.AsString +
-    ' group by amazonpo', true);
-  cbAmazonPo.ItemIndex := 0;
+    javaRun := 'java -jar AmazonAinv.jar com.ainv.projects.Starter runModule=CreateInboundShipments ';
+    args := ' action=confirm' + ' logdir=' + ExtractFilePath(ParamStr(0)) + '\ fileName=' + fileName + '.confirm';
+    // showMessage(args);
+    ExeAndWait(javaRun + args);
+
+  finally
+    Screen.Cursor := crDefault;
+    TmpLst.Free;
+    btnRefreshClick(nil);
+    cbAmazonPo.Items := DM.fillCombo('polines', 'amazonpo', ' where po =' + po + ' group by amazonpo', true);
+    cbAmazonPo.ItemIndex := 0;
+  end;
 end;
 
 procedure TfmPo.btnPrintItemLabelsClick(Sender: TObject);

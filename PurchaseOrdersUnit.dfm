@@ -290,6 +290,11 @@ object fmPurchaseOrders: TfmPurchaseOrders
       ShortCut = 16452
       OnClick = DeletePO1Click
     end
+    object GetprepOwnerfromAmazon: TMenuItem
+      Caption = 'Get Item sizes from Amazon'
+      ShortCut = 16455
+      OnClick = GetprepOwnerfromAmazonClick
+    end
     object N1: TMenuItem
       Caption = '-'
     end

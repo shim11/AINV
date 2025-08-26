@@ -32,6 +32,7 @@ type
     ReceivewholePO1: TMenuItem;
     ReceiveselectedPO1: TMenuItem;
     btnCreateEmptyPO: TBitBtn;
+    GetprepOwnerfromAmazon: TMenuItem;
     procedure dbgPurchaseOrdersDblClick(Sender: TObject);
     procedure Exit1Click(Sender: TObject);
     procedure ReceivePO1Click(Sender: TObject);
@@ -50,6 +51,7 @@ type
     procedure ReceivewholePO1Click(Sender: TObject);
     procedure ReceiveselectedPO1Click(Sender: TObject);
     procedure btnCreateEmptyPOClick(Sender: TObject);
+    procedure GetprepOwnerfromAmazonClick(Sender: TObject);
   private
     ascDesc: string;
   public
@@ -240,6 +242,8 @@ procedure TfmPurchaseOrders.dbgPurchaseOrdersDblClick(Sender: TObject);
 begin
   if (DM.tbPopo.Value > 0) then
   begin
+//  DM.checkPrepAndLabelOwner(DM.tbPopo.AsString);
+//  DM.checkItemDimensions(DM.tbPopo.AsString);
     addActivity(DM.AlonDb, 'TfmPurchaseOrders.dbgPurchaseOrdersDblClick po=' + DM.tbPopo.AsString);
     DM.tbPOLines.Active := true;
     fmPo.ShowModal;
@@ -354,6 +358,15 @@ begin
   dbgPurchaseOrders.SetFocus;
   dbgPurchaseOrdersTitleBtnClick(dbgPurchaseOrders, 1, dbgPurchaseOrders.Columns.Items[1].Field);
   PressKey(VK_RIGHT);
+end;
+
+procedure TfmPurchaseOrders.GetprepOwnerfromAmazonClick(Sender: TObject);
+var
+  po: String;
+begin
+  po := dbgPurchaseOrders.DataSource.DataSet.FieldByName('PO').AsString;
+  DM.checkPrepAndLabelOwner(po);
+  DM.checkItemDimensions(po);
 end;
 
 procedure TfmPurchaseOrders.ReceivePO1Click(Sender: TObject);
